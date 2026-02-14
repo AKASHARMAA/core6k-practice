@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Japanese Practice v12 (Kuromoji Standard)</title>
+    <title>Japanese Practice v12 (Fixed Upload)</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -31,6 +31,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            background-image: url('https://iili.io/qJI0gIV.md.png');
         }
 
         #main-container {
@@ -50,8 +51,8 @@
         }
 
         .file-input-wrapper {
+            /* Wrapper styles are less critical now, but kept for alignment */
             position: relative;
-            overflow: hidden;
             display: inline-block;
         }
 
@@ -73,13 +74,9 @@
             background-color: #eef2ff;
         }
 
+        /* The input is now hidden via inline style, so this CSS won't affect layout anymore */
         input[type=file] {
-            font-size: 100px;
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            cursor: pointer;
+            display: none;
         }
 
         .filter-group {
@@ -357,8 +354,10 @@
     <div id="main-container">
         <div id="upload-card">
             <div class="file-input-wrapper">
-                <button class="btn-upload"><i class="fas fa-upload"></i> Upload csv File</button>
-                <input type="file" id="csv-file" accept=".csv,.txt,.tsv" />
+                <button class="btn-upload" onclick="document.getElementById('csv-file').click()">
+                    <i class="fas fa-upload"></i> Upload csv File
+                </button>
+                <input type="file" id="csv-file" accept=".csv,.txt,.tsv" style="display: none;" />
             </div>
             <div class="filter-group">
                 <label for="pos-filter" style="font-size: 14px; font-weight: 500; color: #64748b;">Filter by
@@ -492,7 +491,6 @@
 
     </script>
 
-    <!-- Kuromoji Library (Morphological Analysis) -->
     <script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 
     <script>
@@ -838,4 +836,3 @@
 </body>
 
 </html>
-
