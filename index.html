@@ -1,8 +1,13 @@
-<!DOCTYPE html><html lang="ja"><head>
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Japanese Practice (Continuous)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&amp;family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+    <title>Japanese Practice v12 (Kuromoji Standard)</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -15,6 +20,7 @@
             --bg: #f3f4f6;
             --card-bg: #ffffff;
         }
+
         body {
             font-family: 'Roboto', 'Noto Sans JP', sans-serif;
             background-color: var(--bg);
@@ -25,8 +31,8 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            background-image: url('https://iili.io/qJI0gIV.md.png');
         }
+
         #main-container {
             width: 100%;
             max-width: 650px;
@@ -34,6 +40,7 @@
             flex-direction: column;
             gap: 20px;
         }
+
         #upload-card {
             background: var(--card-bg);
             padding: 20px;
@@ -41,11 +48,13 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
+
         .file-input-wrapper {
             position: relative;
             overflow: hidden;
             display: inline-block;
         }
+
         .btn-upload {
             border: 2px dashed #cbd5e1;
             color: #64748b;
@@ -57,11 +66,13 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .btn-upload:hover {
             border-color: var(--primary);
             color: var(--primary);
             background-color: #eef2ff;
         }
+
         input[type=file] {
             font-size: 100px;
             position: absolute;
@@ -70,6 +81,7 @@
             opacity: 0;
             cursor: pointer;
         }
+
         .filter-group {
             margin-top: 10px;
             display: flex;
@@ -77,6 +89,7 @@
             align-items: center;
             gap: 10px;
         }
+
         select {
             padding: 8px 12px;
             border-radius: 8px;
@@ -87,11 +100,13 @@
             outline: none;
             cursor: pointer;
         }
+
         select:focus {
             border-color: var(--primary);
-            ring: 2px solid #e0e7ff;
+            box-shadow: 0 0 0 2px #e0e7ff;
+            outline: none;
         }
-        
+
         /* Continuous Mode Toggle */
         .toggle-container {
             margin-top: 15px;
@@ -100,33 +115,52 @@
             justify-content: center;
             gap: 10px;
         }
+
         .toggle-switch {
             position: relative;
             display: inline-block;
             width: 50px;
             height: 26px;
         }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background-color: #ccc;
             transition: .4s;
             border-radius: 34px;
         }
+
         .slider:before {
             position: absolute;
             content: "";
             height: 20px;
             width: 20px;
-            left: 3px; bottom: 3px;
+            left: 3px;
+            bottom: 3px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
         }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(24px); }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
         .toggle-label {
             font-size: 14px;
             font-weight: 500;
@@ -136,40 +170,46 @@
         #card {
             background: var(--card-bg);
             width: 100%;
-            padding: 0; 
+            padding: 0;
             border-radius: 24px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             overflow: hidden;
             position: relative;
-            display: none; 
+            display: none;
         }
+
         #progress-container {
             width: 100%;
             height: 6px;
             background-color: #e5e7eb;
         }
+
         #progress-bar {
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--primary-dark));
             width: 0%;
             transition: width 0.3s ease;
         }
+
         .content {
             padding: 40px 40px 30px 40px;
             text-align: center;
         }
+
         h1 {
             font-size: 32px;
             margin: 8px 0;
             color: var(--text);
             font-weight: 700;
         }
+
         h2 {
             font-size: 20px;
             color: var(--primary);
             margin-bottom: 4px;
             font-weight: 700;
         }
+
         .label {
             font-size: 11px;
             text-transform: uppercase;
@@ -179,18 +219,21 @@
             display: block;
             font-weight: 600;
         }
+
         .kana {
             font-size: 22px;
             color: var(--subtext);
             margin-bottom: 20px;
             display: block;
         }
+
         .meaning {
             font-size: 16px;
             color: #4b5563;
             font-style: italic;
             margin-top: 4px;
         }
+
         #status {
             margin-top: 20px;
             font-weight: 600;
@@ -201,12 +244,14 @@
             justify-content: center;
             gap: 8px;
         }
+
         #debug {
             margin-top: 8px;
             font-size: 13px;
             color: #9ca3af;
             min-height: 20px;
         }
+
         .controls {
             display: flex;
             justify-content: center;
@@ -215,6 +260,7 @@
             margin-top: 30px;
             padding-bottom: 40px;
         }
+
         .btn-nav {
             background: white;
             border: 2px solid #e5e7eb;
@@ -229,12 +275,17 @@
             align-items: center;
             justify-content: center;
         }
+
         .btn-nav:hover {
             border-color: var(--primary);
             color: var(--primary);
             transform: translateY(-2px);
         }
-        .btn-nav:active { transform: translateY(0); }
+
+        .btn-nav:active {
+            transform: translateY(0);
+        }
+
         #btn-mic {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
@@ -250,21 +301,28 @@
             align-items: center;
             justify-content: center;
         }
+
         #btn-mic:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
         }
-        #btn-mic:active { transform: scale(0.95); }
+
+        #btn-mic:active {
+            transform: scale(0.95);
+        }
+
         #btn-mic.listening {
             background: #ffa726;
             animation: pulse 1.5s infinite;
         }
+
         hr {
             border: 0;
             height: 1px;
             background: #e5e7eb;
             margin: 25px 0;
         }
+
         .keyboard-hint {
             position: absolute;
             bottom: 10px;
@@ -272,368 +330,513 @@
             font-size: 11px;
             color: #d1d5db;
         }
+
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 167, 38, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 167, 38, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0);
+            }
         }
-        
+
         .active-mode {
             color: var(--success);
             font-weight: 700;
         }
     </style>
-<script defer="" data-domain="azure-geri-29.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script></head>
+</head>
+
 <body>
 
-<div id="main-container">
-    <div id="upload-card">
-        <div class="file-input-wrapper">
-            <button class="btn-upload"><i class="fas fa-upload"></i> Upload csv File</button>
-            <input type="file" id="csv-file" accept=".csv,.txt,.tsv">
-        </div>
-        <div class="filter-group">
-            <label for="pos-filter" style="font-size: 14px; font-weight: 500; color: #64748b;">Filter by POS:</label>
-            <select id="pos-filter" disabled="">
-                <option value="all">All</option>
-            </select>
-        </div>
-        
-        <div class="toggle-container">
-            <label class="toggle-switch">
-                <input type="checkbox" id="continuous-toggle">
-                <span class="slider"></span>
-            </label>
-            <span class="toggle-label" id="toggle-label-text">Continuous Mode</span>
+    <div id="main-container">
+        <div id="upload-card">
+            <div class="file-input-wrapper">
+                <button class="btn-upload"><i class="fas fa-upload"></i> Upload csv File</button>
+                <input type="file" id="csv-file" accept=".csv,.txt,.tsv" />
+            </div>
+            <div class="filter-group">
+                <label for="pos-filter" style="font-size: 14px; font-weight: 500; color: #64748b;">Filter by
+                    POS:</label>
+                <select id="pos-filter" disabled>
+                    <option value="all">All</option>
+                </select>
+            </div>
+
+            <div class="toggle-container">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="continuous-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" id="toggle-label-text">Continuous Mode</span>
+            </div>
+
+            <div id="file-info" style="margin-top: 10px; font-size: 12px; color: #94a3b8;"></div>
         </div>
 
-        <div id="file-info" style="margin-top: 10px; font-size: 12px; color: #94a3b8;"></div>
+        <div id="card">
+            <div id="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+            <div class="content">
+                <span class="label">Target Word</span>
+                <h1 id="target-word">...</h1>
+                <p class="meaning" id="word-meaning">...</p>
+                <hr>
+                <span class="label">Sentence</span>
+                <h2 id="target-text" style="font-size: 26px; color: var(--text);">...</h2>
+                <span id="target-kana" class="kana">...</span>
+                <p class="meaning" id="sentence-meaning" style="color: #6b7280;">... </p>
+                <div id="status"><i class="fas fa-arrow-up"></i> Press Space</div>
+                <div id="debug"></div>
+            </div>
+            <div class="controls">
+                <button class="btn-nav" onclick="prevCard()" title="Previous (Left Arrow)"><i
+                        class="fas fa-arrow-left"></i></button>
+                <button id="btn-mic" onclick="startListening()" title="Start/Stop (Space)"><i
+                        class="fas fa-microphone"></i></button>
+                <button class="btn-nav" onclick="nextCard()" title="Next (Right Arrow)"><i
+                        class="fas fa-arrow-right"></i></button>
+            </div>
+            <div class="keyboard-hint">Use Arrow Keys & Space</div>
+        </div>
     </div>
 
-    <div id="card">
-        <div id="progress-container"><div id="progress-bar"></div></div>
-        <div class="content">
-            <span class="label">Target Word</span>
-            <h1 id="target-word">...</h1>
-            <p class="meaning" id="word-meaning">...</p>
-            <hr>
-            <span class="label">Sentence</span>
-            <h2 id="target-text" style="font-size: 26px; color: var(--text);">...</h2>
-            <span id="target-kana" class="kana">...</span>
-            <p class="meaning" id="sentence-meaning" style="color: #6b7280;">... </p>
-            <div id="status"><i class="fas fa-arrow-up"></i> Press Space</div>
-            <div id="debug"></div>
-        </div>
-        <div class="controls">
-            <button class="btn-nav" onclick="prevCard()" title="Previous (Left Arrow)"><i class="fas fa-arrow-left"></i></button>
-            <button id="btn-mic" onclick="startListening()" title="Start/Stop (Space)"><i class="fas fa-microphone"></i></button>
-            <button class="btn-nav" onclick="nextCard()" title="Next (Right Arrow)"><i class="fas fa-arrow-right"></i></button>
-        </div>
-        <div class="keyboard-hint">Use Arrow Keys &amp; Space</div>
-    </div>
-</div>
+    <script>
+        let allSentences = [];
+        let filteredSentences = [];
+        let currentIndex = 0;
+        const POS_COLUMN_INDEX = 8;
 
-<script>
-    let allSentences = [];
-    let filteredSentences = [];
-    let currentIndex = 0;
-    const POS_COLUMN_INDEX = 8;
-    
-    // Continuous Mode
-    let isContinuous = false;
-    document.getElementById('continuous-toggle').addEventListener('change', (e) => {
-        isContinuous = e.target.checked;
-        const label = document.getElementById('toggle-label-text');
-        if (isContinuous) {
-            label.classList.add('active-mode');
-            label.innerText = "Continuous Mode: ON";
-        } else {
-            label.classList.remove('active-mode');
-            label.innerText = "Continuous Mode";
-        }
-    });
-    
-    document.getElementById('csv-file').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        document.getElementById('file-info').innerText = "Loading: " + file.name;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            parseCSV(e.target.result);
-        };
-        reader.readAsText(file);
-    });
-
-    function parseCSV(content) {
-        const lines = content.split('\n');
-        allSentences = [];
-        const posSet = new Set();
-        
-        lines.forEach(line => {
-            if (!line.trim()) return;
-            const cols = line.split('\t');
-            if (cols.length < 6) return;
-            
-            const word = cols[0] ? cols[0].trim() : "";
-            const word_meaning = cols[3] ? cols[3].trim() : "";
-            const text = cols[4] ? cols[4].trim() : "";
-            const kana_raw = cols[5] ? cols[5].trim() : "";
-            const sentence_meaning = cols[6] ? cols[6].trim() : "";
-            const pos = (cols.length > POS_COLUMN_INDEX && cols[POS_COLUMN_INDEX]) ? cols[POS_COLUMN_INDEX].trim() : "Unknown";
-            const kana = kana_raw.replace(/ /g, "").replace(/　/g, "");
-
-            allSentences.push({ word, word_meaning, text, kana, sentence_meaning, pos });
-            if (pos) posSet.add(pos);
-        });
-
-        document.getElementById('file-info').innerText = `Loaded ${allSentences.length} sentences.`;
-        populatePOSFilter(Array.from(posSet).sort());
-        filterSentences("all");
-        document.getElementById('card').style.display = 'block';
-    }
-
-    function populatePOSFilter(posList) {
-        const select = document.getElementById('pos-filter');
-        select.innerHTML = '<option value="all">All Parts of Speech</option>';
-        posList.forEach(pos => {
-            const option = document.createElement('option');
-            option.value = pos;
-            option.innerText = pos;
-            select.appendChild(option);
-        });
-        select.disabled = false;
-    }
-
-    document.getElementById('pos-filter').addEventListener('change', (e) => {
-        filterSentences(e.target.value);
-    });
-
-    function filterSentences(pos) {
-        if (pos === "all") filteredSentences = [...allSentences];
-        else filteredSentences = allSentences.filter(s => s.pos === pos);
-        currentIndex = 0;
-        updateDisplay();
-        document.getElementById('pos-filter').blur(); 
-    }
-
-    // --- ASR LOGIC ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition;
-    
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'ja-JP';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 10;
-        setupRecognitionHandlers();
-    } else {
-        alert("Web Speech API not supported. Please use Chrome/Edge.");
-    }
-
-    function setupRecognitionHandlers() {
-        recognition.onresult = function(event) {
-            const resultsList = event.results[0];
-            const s = filteredSentences[currentIndex];
-            
-            // STAGE 1: RAW MATCH 
-            const targetKanjiRaw = s.text.replace(/[。、！？\s]/g, '');
-            const targetKanaRaw = s.kana.replace(/[。、！？\s]/g, '');
-            
-            let matchFound = false;
-            let heardLog = [];
-            let maxSim = 0.0;
-    
-            for (let i = 0; i < resultsList.length; i++) {
-                let spoken = resultsList[i].transcript;
-                spoken = spoken.replace(/[。、！？\s]/g, '');
-                spoken = normalizeNumbers(spoken);
-                heardLog.push(spoken);
-    
-                // 1. Direct Check
-                let simKanji = getSimilarity(spoken, targetKanjiRaw);
-                let simKana = getSimilarity(spoken, targetKanaRaw);
-                
-                if (simKanji >= 0.90 || simKana >= 0.90) {
-                    matchFound = true;
-                    if(simKanji > maxSim) maxSim = simKanji;
-                    if(simKana > maxSim) maxSim = simKana;
-                    break; 
-                }
-                
-                // 2. Normalized Check
-                let spokenNorm = normalizeJapanese(spoken);
-                let targetKanjiNorm = normalizeJapanese(targetKanjiRaw);
-                let targetKanaNorm = normalizeJapanese(targetKanaRaw);
-                
-                let simKanjiNorm = getSimilarity(spokenNorm, targetKanjiNorm);
-                let simKanaNorm = getSimilarity(spokenNorm, targetKanaNorm);
-                
-                let bestThisRound = Math.max(simKanji, simKana, simKanjiNorm, simKanaNorm);
-                if (bestThisRound > maxSim) maxSim = bestThisRound;
-                
-                if (simKanjiNorm >= 0.90 || simKanaNorm >= 0.90) {
-                    matchFound = true;
-                    break;
-                }
-            }
-    
-            isListening = false;
-            document.getElementById('btn-mic').classList.remove('listening');
-    
-            if (matchFound) {
-                document.getElementById('status').innerHTML = '<i class="fas fa-check-circle"></i> Perfect!';
-                document.getElementById('status').style.color = "#10b981"; 
-                document.getElementById('debug').innerText = "Matched: " + heardLog[0] + " (" + (maxSim*100).toFixed(0) + "%)";
-                
-                // AUTO-ADVANCE
-                if (isContinuous) {
-                    setTimeout(() => {
-                        nextCard();
-                        startListening();
-                    }, 1500);
-                } else {
-                    setTimeout(() => nextCard(), 1000);
-                }
-                
+        // Continuous Mode
+        let isContinuous = false;
+        document.getElementById('continuous-toggle').addEventListener('change', (e) => {
+            isContinuous = e.target.checked;
+            const label = document.getElementById('toggle-label-text');
+            if (isContinuous) {
+                label.classList.add('active-mode');
+                label.innerText = "Continuous Mode: ON";
             } else {
-                document.getElementById('status').innerHTML = '<i class="fas fa-times-circle"></i> Try again';
-                document.getElementById('status').style.color = "#ef4444"; 
-                document.getElementById('debug').innerText = "idx: " + heardLog[0] + " (Sim: " + (maxSim*100).toFixed(0) + "%)";
-                
-                // AUTO-RETRY
-                if (isContinuous) {
-                    setTimeout(() => {
-                        startListening();
-                    }, 2000);
+                label.classList.remove('active-mode');
+                label.innerText = "Continuous Mode";
+            }
+        });
+
+        document.getElementById('csv-file').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('file-info').innerText = "Loading: " + file.name;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                parseCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        function parseCSV(content) {
+            const lines = content.split('\n');
+            allSentences = [];
+            const posSet = new Set();
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                const cols = line.split('\t');
+                if (cols.length < 6) return;
+
+                const word = cols[0] ? cols[0].trim() : "";
+                const word_meaning = cols[3] ? cols[3].trim() : "";
+                const text = cols[4] ? cols[4].trim() : "";
+                const kana_raw = cols[5] ? cols[5].trim() : "";
+                const sentence_meaning = cols[6] ? cols[6].trim() : "";
+                const pos = (cols.length > POS_COLUMN_INDEX && cols[POS_COLUMN_INDEX]) ? cols[POS_COLUMN_INDEX].trim() : "Unknown";
+                const kana = kana_raw.replace(/ /g, "").replace(/　/g, "");
+
+                allSentences.push({ word, word_meaning, text, kana, sentence_meaning, pos });
+                if (pos) posSet.add(pos);
+            });
+
+            document.getElementById('file-info').innerText = `Loaded ${allSentences.length} sentences.`;
+            populatePOSFilter(Array.from(posSet).sort());
+            filterSentences("all");
+            document.getElementById('card').style.display = 'block';
+        }
+
+        function populatePOSFilter(posList) {
+            const select = document.getElementById('pos-filter');
+            select.innerHTML = '<option value="all">All Parts of Speech</option>';
+            posList.forEach(pos => {
+                const option = document.createElement('option');
+                option.value = pos;
+                option.innerText = pos;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+        }
+
+        document.getElementById('pos-filter').addEventListener('change', (e) => {
+            filterSentences(e.target.value);
+        });
+
+        function filterSentences(pos) {
+            if (pos === "all") filteredSentences = [...allSentences];
+            else filteredSentences = allSentences.filter(s => s.pos === pos);
+            currentIndex = 0;
+            updateDisplay();
+            document.getElementById('pos-filter').blur();
+        }
+
+    </script>
+
+    <!-- Kuromoji Library (Fork with Uncompressed Support) -->
+    <script src="https://cdn.jsdelivr.net/npm/@aiktb/kuromoji/build/kuromoji.js"></script>
+
+    <script>
+        // ... (previous variables) ...
+
+        // --- KUROMOJI TOKENIZER ---
+        let tokenizer = null;
+        let isDictLoaded = false;
+
+        function initKuromoji() {
+            document.getElementById('file-info').innerText = "Loading Standard Dictionary (Kuromoji)...";
+
+            // Using @aiktb/kuromoji fork to load UNCOMPRESSED dictionary files from jsDelivr
+            // This avoids the "invalid signature" / GZ issues in some browsers/local environments.
+            kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/@aiktb/kuromoji/model/dict/" }).build(function (err, _tokenizer) {
+                if (err) {
+                    console.error("Kuromoji Load Error:", err);
+                    document.getElementById('file-info').innerText = "Error: Failed to load Dictionary.";
+                    return;
+                }
+                tokenizer = _tokenizer;
+                isDictLoaded = true;
+                console.log("Kuromoji Tokenizer Ready");
+
+                if (allSentences.length > 0) document.getElementById('file-info').innerText = `Loaded ${allSentences.length} sentences. Dictionary Ready.`;
+                else document.getElementById('file-info').innerText = "Dictionary Ready. Please Upload CSV.";
+            });
+        }
+
+        // Helper to convert Tokenizer Output (Katakana) -> Hiragana
+        function katakanaToHiragana(src) {
+            return src.replace(/[\u30a1-\u30f6]/g, function (match) {
+                var chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
+        }
+
+        // Get Official Reading from Text using Kuromoji
+        function getOfficialReading(text) {
+            if (!tokenizer) return null;
+            const tokens = tokenizer.tokenize(text);
+            // Concatenate readings
+            let reading = tokens.map(t => {
+                // return t.reading (Katakana) or t.surface_form (if no reading, e.g. punctuation)
+                // Note: 'reading' field might be undefined for some symbols, fallback to surface_form
+                return t.reading ? t.reading : t.surface_form;
+            }).join("");
+
+            return katakanaToHiragana(reading);
+        }
+        // Initialize immediately
+        initKuromoji();
+
+
+        // --- ASR LOGIC ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 10;
+            setupRecognitionHandlers();
+        } else {
+            alert("Web Speech API not supported. Please use Chrome/Edge.");
+        }
+
+        function setupRecognitionHandlers() {
+            recognition.onresult = function (event) {
+                try {
+                    const resultsList = event.results[0];
+                    const s = filteredSentences[currentIndex];
+
+                    // Targets
+                    const targetKanaRaw = s.kana.replace(/[。、！？\s]/g, '');
+                    const targetKanjiRaw = s.text.replace(/[。、！？\s]/g, ''); // Fix: Define targetKanjiRaw
+                    // Normalize Target: Strict (Keep 'っ')
+                    const targetKanaNorm = normalizeJapanese(targetKanaRaw);
+
+                    let matchFound = false;
+                    let heardLog = [];
+                    let maxSim = 0.0;
+
+                    for (let i = 0; i < resultsList.length; i++) {
+                        let spokenRaw = resultsList[i].transcript;
+                        let spokenClean = spokenRaw.replace(/[。、！？\s]/g, '');
+                        spokenClean = normalizeNumbers(spokenClean);
+                        spokenClean = katakanaToHiragana(spokenClean);
+
+                        // v10: Keep 'っ' for strict mode
+                        let spokenDisplay = spokenClean;
+
+                        // v11: NO STRIPPING 'っ' (Strict Mode)
+                        // spokenClean = spokenClean.replace(/っ/g, ''); 
+                        heardLog.push(spokenDisplay);
+
+                        // --- STRATEGY 1: LEGACY LOGIC (Primary) ---
+                        // Compare Spoken against Target (Reference) with Levenshtein
+                        // If this matches (>90%), we TRUST it immediately.
+
+                        let simKanji = getSimilarity(spokenClean, targetKanjiRaw); // Raw Text (Strict)
+                        let simKana = getSimilarity(spokenClean, targetKanaNorm); // Strict Target (Keep 'っ')
+
+                        if (simKanji >= 0.90 || simKana >= 0.90) {
+                            matchFound = true;
+                            if (simKanji > maxSim) maxSim = simKanji;
+                            if (simKana > maxSim) maxSim = simKana;
+                        }
+
+                        // Normalized Check (Standard)
+                        let spokenNorm = normalizeJapanese(spokenRaw);
+                        let targetKanjiNorm = normalizeJapanese(targetKanjiRaw);
+                        let targetKanaNorm2 = normalizeJapanese(targetKanaRaw);
+
+                        let simKanjiNorm = getSimilarity(spokenNorm, targetKanjiNorm);
+                        let simKanaNorm = getSimilarity(spokenNorm, targetKanaNorm2);
+
+                        let bestThisRound = Math.max(simKanji, simKana, simKanjiNorm, simKanaNorm);
+                        if (bestThisRound > maxSim) maxSim = bestThisRound;
+
+                        if (matchFound || simKanjiNorm >= 0.90 || simKanaNorm >= 0.90) {
+                            matchFound = true;
+                            break;
+                        }
+
+                        // --- STRATEGY 2: REGEX MATCHING (Fallback) ---
+                        // Only run if Legacy didn't find a high match.
+
+                        if (!matchFound) {
+                            if (!isDictLoaded) {
+                                // Fallback check if dict failed
+                                if (spokenClean === s.text.replace(/[。、！？\s]/g, '')) matchFound = true;
+                            } else {
+                                // 1. Get Official Reading from Kuromoji
+                                // e.g., "明日" -> "あした"
+                                let kuromojiReading = getOfficialReading(spokenClean);
+
+                                // 2. Compare Kuromoji Reading vs Target Kana
+                                if (kuromojiReading) {
+                                    console.log(`Kuromoji Check: Spoken '${spokenClean}' -> Reading '${kuromojiReading}' vs Target '${targetKanaNorm}'`);
+
+                                    let simKuromoji = getSimilarity(kuromojiReading, targetKanaNorm);
+                                    if (simKuromoji > maxSim) maxSim = simKuromoji;
+
+                                    if (simKuromoji >= 0.90) {
+                                        matchFound = true;
+                                        console.log("Kuromoji Match Hit!");
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Fallback: Calculate similarity using standard normalization if Regex fails
+                        // (Just to show a score if no perfect match)
+                        let baseSim = getSimilarity(spokenClean, targetKanaRaw);
+                        if (baseSim > maxSim) maxSim = baseSim;
+                        if (baseSim >= 0.9) matchFound = true;
+                    }
+
+                    isListening = false;
+                    document.getElementById('btn-mic').classList.remove('listening');
+
+                    if (matchFound) {
+                        document.getElementById('status').innerHTML = '<i class="fas fa-check-circle"></i> Perfect!';
+                        document.getElementById('status').style.color = "#10b981";
+                        document.getElementById('debug').innerText = "Matched: " + heardLog[0] + " (100%)";
+
+                        // AUTO-ADVANCE
+                        if (isContinuous) {
+                            setTimeout(() => {
+                                nextCard();
+                                startListening();
+                            }, 1500);
+                        } else {
+                            setTimeout(() => nextCard(), 1000);
+                        }
+
+                    } else {
+                        document.getElementById('status').innerHTML = '<i class="fas fa-times-circle"></i> Try again';
+                        document.getElementById('status').style.color = "#ef4444";
+                        document.getElementById('debug').innerText = "Heard: " + heardLog[0] + " (Sim: " + (maxSim * 100).toFixed(0) + "%)";
+
+                        // AUTO-RETRY
+                        if (isContinuous) {
+                            setTimeout(() => {
+                                startListening();
+                            }, 2000);
+                        }
+                    }
+                } catch (e) {
+                    console.error("CRITICAL ERROR IN ONRESULT:", e);
+                    document.getElementById('debug').innerText = "ERROR: " + e.message;
+                    isListening = false;
+                    document.getElementById('btn-mic').classList.remove('listening');
+                }
+            };
+
+            recognition.onspeechend = function () {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('btn-mic').classList.remove('listening');
+            };
+
+            recognition.onerror = function (event) {
+                if (event.error === 'no-speech' && isContinuous) {
+                    document.getElementById('status').innerText = "No speech detected. Listening again...";
+                    setTimeout(() => startListening(), 1000);
+                    return;
+                }
+                document.getElementById('status').innerText = "Error: " + event.error;
+                isListening = false;
+                document.getElementById('btn-mic').classList.remove('listening');
+            };
+        }
+
+        // --- HELPERS ---
+
+        function normalizeJapanese(text) {
+            let t = text;
+            t = t.replace(/出来ます/g, "できます").replace(/出来る/g, "できる");
+            t = t.replace(/下さい/g, "ください").replace(/ください/g, "ください");
+            t = t.replace(/致します/g, "いたします").replace(/居ます/g, "います");
+            t = t.replace(/有ります/g, "あります").replace(/成ります/g, "なります");
+            t = t.replace(/私/g, "わたし").replace(/僕/g, "ぼく");
+            t = t.replace(/誰/g, "だれ").replace(/何/g, "なに");
+            return katakanaToHiragana(t);
+        }
+
+        function katakanaToHiragana(src) {
+            return src.replace(/[\u30a1-\u30f6]/g, function (match) {
+                var chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
+        }
+
+        // Allow fuzzy matching for voicing (Rendaku): k<->g, s<->z, t<->d, h<->b/p
+        function expandVoicing(char) {
+            const map = {
+                'か': '[かが]', 'き': '[きぎ]', 'く': '[くぐ]', 'け': '[けげ]', 'こ': '[こご]',
+                'が': '[かが]', 'ぎ': '[きぎ]', 'ぐ': '[くぐ]', 'げ': '[けげ]', 'ご': '[こご]',
+                'さ': '[さざ]', 'し': '[しじ]', 'す': '[すず]', 'せ': '[せぜ]', 'そ': '[そぞ]',
+                'ざ': '[さざ]', 'じ': '[しじ]', 'ず': '[すず]', 'ぜ': '[せぜ]', 'ぞ': '[そぞ]',
+                'た': '[ただ]', 'ち': '[ちぢ]', 'つ': '[つづ]', 'て': '[てで]', 'と': '[とど]',
+                'だ': '[ただ]', 'ぢ': '[ちぢ]', 'づ': '[つづ]', 'で': '[てで]', 'ど': '[とど]',
+                'は': '[はばぱ]', 'ひ': '[ひびぴ]', 'ふ': '[ふぶぷ]', 'へ': '[へべぺ]', 'ほ': '[ほぼぽ]',
+                'ば': '[はばぱ]', 'び': '[ひびぴ]', 'ぶ': '[ふぶぷ]', 'べ': '[へべぺ]', 'ぼ': '[ほぼぽ]',
+                'ぱ': '[はばぱ]', 'ぴ': '[ひびぴ]', 'ぷ': '[ふぶぷ]', 'ぺ': '[へべぺ]', 'ぽ': '[ほぼぽ]'
+            };
+            return map[char] || char; // Return regex group or original char if no variant
+        }
+
+        function normalizeNumbers(text) {
+            return text.replace(/0/g, '〇').replace(/1/g, '一').replace(/2/g, '二')
+                .replace(/3/g, '三').replace(/4/g, '四').replace(/5/g, '五')
+                .replace(/6/g, '六').replace(/7/g, '七').replace(/8/g, '八')
+                .replace(/9/g, '九');
+        }
+
+        function getLevenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) == a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
+                    else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
                 }
             }
-        };
-    
-        recognition.onspeechend = function() {
-            recognition.stop();
-            isListening = false;
-            document.getElementById('btn-mic').classList.remove('listening');
-        };
-    
-        recognition.onerror = function(event) {
-            // If No Speech is detected in continuous mode, just retry silently or show prompt
-            if (event.error === 'no-speech' && isContinuous) {
-                 document.getElementById('status').innerText = "No speech detected. Listening again...";
-                 setTimeout(() => startListening(), 1000);
-                 return;
+            return matrix[b.length][a.length];
+        }
+
+        function getSimilarity(a, b) {
+            if (a.length === 0 && b.length === 0) return 1.0;
+            if (a.length === 0 || b.length === 0) return 0.0;
+            const dist = getLevenshteinDistance(a, b);
+            const maxLen = Math.max(a.length, b.length);
+            return 1.0 - (dist / maxLen);
+        }
+
+        // --- UI HELPERS ---
+
+        function updateDisplay() {
+            if (filteredSentences.length === 0) {
+                document.getElementById('target-word').innerText = "-";
+                document.getElementById('target-text').innerText = "No Data";
+                document.getElementById('word-meaning').innerText = "";
+                document.getElementById('progress-bar').style.width = "0%";
+                return;
             }
-            
-            document.getElementById('status').innerText = "Error: " + event.error;
-            isListening = false;
+            if (currentIndex >= filteredSentences.length) currentIndex = filteredSentences.length - 1;
+            if (currentIndex < 0) currentIndex = 0;
+
+            const progress = ((currentIndex + 1) / filteredSentences.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + "%";
+
+            const s = filteredSentences[currentIndex];
+            document.getElementById('target-word').innerText = s.word;
+            document.getElementById('target-text').innerText = s.text;
+            document.getElementById('target-kana').innerText = s.kana;
+            document.getElementById('word-meaning').innerText = s.word_meaning;
+            document.getElementById('sentence-meaning').innerText = s.sentence_meaning;
+            resetStatus();
+        }
+
+        function resetStatus() {
+            document.getElementById('status').innerHTML = '<i class="fas fa-headphones"></i> Ready to listen';
+            document.getElementById('status').style.color = "#6b7280";
+            document.getElementById('debug').innerText = "";
             document.getElementById('btn-mic').classList.remove('listening');
-        };
-    }
+        }
 
-    // --- HELPERS ---
-
-    function normalizeJapanese(text) {
-        let t = text;
-        t = t.replace(/出来ます/g, "できます").replace(/出来る/g, "できる");
-        t = t.replace(/下さい/g, "ください").replace(/ください/g, "ください");
-        t = t.replace(/致します/g, "いたします").replace(/居ます/g, "います");
-        t = t.replace(/有ります/g, "あります").replace(/成ります/g, "なります");
-        t = t.replace(/私/g, "わたし").replace(/僕/g, "ぼく");
-        t = t.replace(/誰/g, "だれ").replace(/何/g, "なに");
-        return t;
-    }
-
-    function normalizeNumbers(text) {
-        return text.replace(/0/g, '〇').replace(/1/g, '一').replace(/2/g, '二')
-                   .replace(/3/g, '三').replace(/4/g, '四').replace(/5/g, '五')
-                   .replace(/6/g, '六').replace(/7/g, '七').replace(/8/g, '八')
-                   .replace(/9/g, '九');
-    }
-
-    function getLevenshteinDistance(a, b) {
-        if (a.length === 0) return b.length;
-        if (b.length === 0) return a.length;
-        const matrix = [];
-        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-        for (let i = 1; i <= b.length; i++) {
-            for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i - 1) == a.charAt(j - 1)) matrix[i][j] = matrix[i - 1][j - 1];
-                else matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+        let isListening = false;
+        function startListening() {
+            if (!recognition) return;
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('btn-mic').classList.remove('listening');
+                return;
             }
+            isListening = true;
+            document.getElementById('status').innerText = "Listening...";
+            document.getElementById('status').style.color = "#e67e22";
+            document.getElementById('btn-mic').classList.add('listening');
+            try { recognition.start(); } catch (e) { }
         }
-        return matrix[b.length][a.length];
-    }
 
-    function getSimilarity(a, b) {
-        if (a.length === 0 && b.length === 0) return 1.0;
-        if (a.length === 0 || b.length === 0) return 0.0;
-        const dist = getLevenshteinDistance(a, b);
-        const maxLen = Math.max(a.length, b.length);
-        return 1.0 - (dist / maxLen);
-    }
-
-    // --- UI HELPERS ---
-
-    function updateDisplay() {
-        if (filteredSentences.length === 0) {
-             document.getElementById('target-word').innerText = "-";
-             document.getElementById('target-text').innerText = "No Data";
-             document.getElementById('word-meaning').innerText = "";
-             document.getElementById('progress-bar').style.width = "0%";
-             return;
+        function nextCard() {
+            if (currentIndex < filteredSentences.length - 1) { currentIndex++; updateDisplay(); }
         }
-        if (currentIndex >= filteredSentences.length) currentIndex = filteredSentences.length - 1;
-        if (currentIndex < 0) currentIndex = 0;
-
-        const progress = ((currentIndex + 1) / filteredSentences.length) * 100;
-        document.getElementById('progress-bar').style.width = progress + "%";
-
-        const s = filteredSentences[currentIndex];
-        document.getElementById('target-word').innerText = s.word;
-        document.getElementById('target-text').innerText = s.text;
-        document.getElementById('target-kana').innerText = s.kana;
-        document.getElementById('word-meaning').innerText = s.word_meaning;
-        document.getElementById('sentence-meaning').innerText = s.sentence_meaning;
-        resetStatus();
-    }
-    
-    function resetStatus() {
-        document.getElementById('status').innerHTML = '<i class="fas fa-headphones"></i> Ready to listen';
-        document.getElementById('status').style.color = "#6b7280";
-        document.getElementById('debug').innerText = "";
-        document.getElementById('btn-mic').classList.remove('listening');
-    }
-
-    let isListening = false;
-    function startListening() {
-        if (!recognition) return;
-        if (isListening) {
-             recognition.stop();
-             isListening = false;
-             document.getElementById('btn-mic').classList.remove('listening');
-             return;
+        function prevCard() {
+            if (currentIndex > 0) { currentIndex--; updateDisplay(); }
         }
-        isListening = true;
-        document.getElementById('status').innerText = "Listening...";
-        document.getElementById('status').style.color = "#e67e22";
-        document.getElementById('btn-mic').classList.add('listening');
-        try { recognition.start(); } catch(e) {}
-    }
-    
-    function nextCard() {
-        if (currentIndex < filteredSentences.length - 1) { currentIndex++; updateDisplay(); }
-    }
-    function prevCard() {
-        if (currentIndex > 0) { currentIndex--; updateDisplay(); }
-    }
 
-    document.addEventListener('keydown', (event) => {
-        if (event.code === 'Space') { event.preventDefault(); startListening(); } 
-        else if (event.code === 'ArrowRight') nextCard();
-        else if (event.code === 'ArrowLeft') prevCard();
-    });
-</script>
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') { event.preventDefault(); startListening(); }
+            else if (event.code === 'ArrowRight') nextCard();
+            else if (event.code === 'ArrowLeft') prevCard();
+        });
+    </script>
+</body>
 
-
-</body></html>
-
+</html>
