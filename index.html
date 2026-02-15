@@ -511,8 +511,8 @@
             startBtn.disabled = true;
             startBtn.innerText = "Downloading...";
 
-            // FIXED: Correct path for @aiktb is just /dict/ not /model/dict/
-            kuromoji.builder({ dicPath: "https://cdn.jsdelivr.net/npm/@aiktb/kuromoji/dict/" }).build(function (err, _tokenizer) {
+            // FIXED: Use unpkg as an alternative CDN, sometimes handles exact pathing better
+            kuromoji.builder({ dicPath: "https://unpkg.com/@aiktb/kuromoji/dict/" }).build(function (err, _tokenizer) {
                 if (err) {
                     console.error("Kuromoji Load Error:", err);
                     fileInfo.innerHTML = `Error: Dictionary Load Failed. <br>Details: ${err.message}`;
