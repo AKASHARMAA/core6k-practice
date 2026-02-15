@@ -31,6 +31,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            background-image: url('https://iili.io/qJI0gIV.md.png');
         }
 
         #main-container {
@@ -551,7 +552,8 @@
                 console.log("Kuromoji Tokenizer Ready");
 
                 startBtn.disabled = false;
-                startBtn.innerText = "Start Practice"; // Assuming this button's text should change
+                // RESTORED UI: Mic Icon instead of text
+                startBtn.innerHTML = '<i class="fas fa-microphone"></i>';
                 fileInfo.style.color = "green";
 
                 if (allSentences.length > 0) fileInfo.innerHTML = `Loaded ${allSentences.length} sentences. <b>Engine Ready.</b>`;
@@ -602,6 +604,22 @@
             recognition.onresult = function (event) {
                 try {
                     const resultsList = event.results[0];
+                    const spokenRawAll = resultsList[0].transcript; // Get full raw text
+
+                    // --- VOICE COMMAND: "NEXT" ---
+                    // If user says "Next", skip to next card immediately
+                    if (spokenRawAll.toLowerCase().includes("next")) {
+                        console.log("Voice Command: NEXT detected.");
+                        document.getElementById('status').innerText = "Skipping (Voice Command)...";
+                        isManualStop = true; // Prevent auto-restart loop for a moment
+                        recognition.stop();
+                        setTimeout(() => {
+                            nextCard();
+                            if (isContinuous) startListening(); // Resume listening after skip
+                        }, 500);
+                        return;
+                    }
+
                     const s = filteredSentences[currentIndex];
 
                     // Targets
@@ -733,11 +751,25 @@
                 }
             };
 
-            recognition.onspeechend = function () {
-                recognition.stop();
+            recognition.onend = function () {
                 isListening = false;
                 document.getElementById('btn-mic').classList.remove('listening');
+
+                // --- CONTINUOUS MODE RESTART ---
+                // If Continuous Mode is ON, and we didn't manually stop it (isManualStop),
+                // restart listening after 2 seconds.
+                if (isContinuous && !isManualStop) {
+                    console.log("Continuous Mode: Restarting in 2s...");
+                    document.getElementById('status').innerText = "Restarting...";
+                    setTimeout(() => {
+                        // Only restart if still continuous and not listening
+                        if (isContinuous && !isListening) startListening();
+                    }, 2000);
+                }
             };
+
+            // Removed onspeechend to rely on onend for restart logic
+            // recognition.onspeechend = function () { ... }
 
             recognition.onerror = function (event) {
                 if (event.error === 'no-speech' && isContinuous) {
@@ -850,9 +882,14 @@
         }
 
         let isListening = false;
+        let isManualStop = false; // Flag to track manual vs auto stop
+
         function startListening() {
             if (!recognition) return;
+            isManualStop = false; // Reset flag
+
             if (isListening) {
+                isManualStop = true; // User clicked stop
                 recognition.stop();
                 isListening = false;
                 document.getElementById('btn-mic').classList.remove('listening');
