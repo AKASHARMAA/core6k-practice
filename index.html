@@ -517,7 +517,8 @@
             //    This prevents the browser from unzipping it automatically, allowing kuromoji.js
             //    to do the unzipping itself (which prevents the "Invalid Signature" error).
 
-            kuromoji.builder({ dicPath: "https://raw.githubusercontent.com/takuyaa/kuromoji.js/master/dict/" }).build(function (err, _tokenizer) {
+            // FIXED: Try protocol-relative URL to bypass strict scheme check
+            kuromoji.builder({ dicPath: "//raw.githubusercontent.com/takuyaa/kuromoji.js/master/dict/" }).build(function (err, _tokenizer) {
                 if (err) {
                     console.error("Kuromoji Load Error:", err);
                     fileInfo.innerHTML = `Error: Dictionary Load Failed. <br>Details: ${err.message}`;
