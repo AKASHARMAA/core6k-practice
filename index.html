@@ -492,8 +492,8 @@
 
     </script>
 
-    <!-- Kuromoji Library (Fork with Uncompressed Support) -->
-    <script src="https://cdn.jsdelivr.net/npm/@aiktb/kuromoji/build/kuromoji.js"></script>
+    <!-- Kuromoji Library (Standard) -->
+    <script src="https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/build/kuromoji.js"></script>
 
     <script>
         // ... (previous variables) ...
@@ -504,15 +504,20 @@
 
         function initKuromoji() {
             const fileInfo = document.getElementById('file-info');
-            const startBtn = document.getElementById('btn-mic'); // Assuming btn-mic is the "start" button
+            const startBtn = document.getElementById('btn-mic');
 
-            fileInfo.innerHTML = "<b>Loading AI Engine (~18MB)... Please Wait.</b>";
+            fileInfo.innerHTML = "<b>Loading AI Engine (~1.6MB)... Please Wait.</b>";
             fileInfo.style.color = "blue";
             startBtn.disabled = true;
             startBtn.innerText = "Downloading...";
 
-            // FIXED: Use unpkg as an alternative CDN, sometimes handles exact pathing better
-            kuromoji.builder({ dicPath: "https://unpkg.com/@aiktb/kuromoji/dict/" }).build(function (err, _tokenizer) {
+            // USE STANDARD KUROMOJI + GITHUB RAW
+            // 1. We use the official library (no forks).
+            // 2. We use GitHub Raw for the dictionary because it serves .gz files as 'octet-stream'.
+            //    This prevents the browser from unzipping it automatically, allowing kuromoji.js
+            //    to do the unzipping itself (which prevents the "Invalid Signature" error).
+
+            kuromoji.builder({ dicPath: "https://raw.githubusercontent.com/takuyaa/kuromoji.js/master/dict/" }).build(function (err, _tokenizer) {
                 if (err) {
                     console.error("Kuromoji Load Error:", err);
                     fileInfo.innerHTML = `Error: Dictionary Load Failed. <br>Details: ${err.message}`;
