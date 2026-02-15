@@ -511,6 +511,33 @@
             startBtn.disabled = true;
             startBtn.innerText = "Downloading...";
 
+            // --- NUCLEAR OPTION: XHR INTERCEPTOR ☢️ ---
+            // If the browser/library tries to fetch "https://akasharmaa.github.io/https://raw...",
+            // we intercept it and force "https://raw..."
+            (function () {
+                const originalOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function (method, url, async, user, password) {
+                    if (typeof url === 'string') {
+                        // Check for the "Double Protocol" issue
+                        // e.g., "https://akasharmaa.github.io/raw.githubusercontent.com/..."
+                        const match = url.match(/(https?:\/\/.*)(https?:\/\/.*)/);
+                        if (match && match[2]) {
+                            console.warn("☢️ Nuclear Interceptor Fixed URL:", url, "->", match[2]);
+                            url = match[2];
+                        }
+                        // Check for protocol-relative mangling
+                        else if (url.includes('github.io/raw.githubusercontent.com')) {
+                            // Fix cases where it becomes "https://akasharmaa.github.io/raw.githubusercontent.com/..."
+                            // We want "https://raw.githubusercontent.com/..."
+                            const fixed = url.replace(/.*github\.io\//, 'https://');
+                            console.warn("☢️ Nuclear Interceptor Fixed Relative URL:", url, "->", fixed);
+                            url = fixed;
+                        }
+                    }
+                    return originalOpen.apply(this, arguments);
+                };
+            })();
+
             // USE STANDARD KUROMOJI + GITHUB RAW
             // 1. We use the official library (no forks).
             // 2. We use GitHub Raw for the dictionary because it serves .gz files as 'octet-stream'.
