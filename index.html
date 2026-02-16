@@ -463,8 +463,20 @@
 
             document.getElementById('file-info').innerText = `Loaded ${allSentences.length} sentences.`;
             populatePOSFilter(Array.from(posSet).sort());
-            filterSentences("all");
+            // Restore last used POS filter if possible, else Default to "all"
+            const lastPos = localStorage.getItem('japanese_practice_last_pos') || "all";
+            document.getElementById('pos-filter').value = lastPos;
+            filterSentences(lastPos);
             document.getElementById('card').style.display = 'block';
+        }
+
+        // --- BOOKMARKING SYSTEM ---
+        function saveProgress(pos, index) {
+            localStorage.setItem(`japanese_practice_progress_${pos}`, index);
+        }
+
+        function loadProgress(pos) {
+            return parseInt(localStorage.getItem(`japanese_practice_progress_${pos}`)) || 0;
         }
 
         function populatePOSFilter(posList) {
@@ -484,9 +496,17 @@
         });
 
         function filterSentences(pos) {
+            // Save current POS choice
+            localStorage.setItem('japanese_practice_last_pos', pos);
+
             if (pos === "all") filteredSentences = [...allSentences];
             else filteredSentences = allSentences.filter(s => s.pos === pos);
-            currentIndex = 0;
+
+            // Restore progress for this POS
+            currentIndex = loadProgress(pos);
+            // Safety check
+            if (currentIndex >= filteredSentences.length) currentIndex = 0;
+
             updateDisplay();
             document.getElementById('pos-filter').blur();
         }
@@ -903,10 +923,18 @@
         }
 
         function nextCard() {
-            if (currentIndex < filteredSentences.length - 1) { currentIndex++; updateDisplay(); }
+            if (currentIndex < filteredSentences.length - 1) {
+                currentIndex++;
+                saveProgress(document.getElementById('pos-filter').value, currentIndex);
+                updateDisplay();
+            }
         }
         function prevCard() {
-            if (currentIndex > 0) { currentIndex--; updateDisplay(); }
+            if (currentIndex > 0) {
+                currentIndex--;
+                saveProgress(document.getElementById('pos-filter').value, currentIndex);
+                updateDisplay();
+            }
         }
 
         document.addEventListener('keydown', (event) => {
