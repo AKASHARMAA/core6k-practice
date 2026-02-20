@@ -700,11 +700,17 @@
         function setupRecognitionHandlers() {
             recognition.onresult = function (event) {
                 try {
+                    if (isProcessing) return;
                     if (recognitionTimeout) clearTimeout(recognitionTimeout);
 
                     let prefixTranscript = "";
+                    let lastTransc = "";
                     for (let i = 0; i < event.results.length - 1; i++) {
-                        prefixTranscript += event.results[i][0].transcript;
+                        let transc = event.results[i][0].transcript;
+                        if (transc.trim() && transc.trim() !== lastTransc.trim()) {
+                            prefixTranscript += transc;
+                            lastTransc = transc;
+                        }
                     }
                     const currentResults = event.results[event.results.length - 1];
 
@@ -735,66 +741,79 @@
                     let bestSpokenClean = "";
 
                     for (let i = 0; i < currentResults.length; i++) {
-                        let spokenRaw = prefixTranscript + currentResults[i].transcript;
-                        let spokenClean = spokenRaw.replace(/[。、！？\s]/g, '');
-                        spokenClean = normalizeNumbers(spokenClean);
-                        spokenClean = katakanaToHiragana(spokenClean);
+                        let currentTranscript = currentResults[i].transcript;
 
-                        heardLog.push(spokenClean);
-
-                        let simKanji = getSimilarity(spokenClean, targetKanjiRaw);
-                        let simKana = getSimilarity(spokenClean, targetKanaNorm);
-
-                        if (simKanji >= 0.90 || simKana >= 0.90) {
-                            matchFound = true;
-                            if (simKanji > maxSim) maxSim = simKanji;
-                            if (simKana > maxSim) maxSim = simKana;
+                        let spokenRaw = prefixTranscript;
+                        if (currentTranscript.trim() !== lastTransc.trim()) {
+                            spokenRaw += currentTranscript;
                         }
 
-                        let spokenNorm = normalizeJapanese(spokenRaw);
-                        let targetKanjiNorm = normalizeJapanese(targetKanjiRaw);
-                        let targetKanaNorm2 = normalizeJapanese(targetKanaRaw);
+                        // Test both concatenated phrase AND just the current phrase (solves pasting twice bug)
+                        let variantsToTest = [spokenRaw, currentTranscript];
 
-                        let simKanjiNorm = getSimilarity(spokenNorm, targetKanjiNorm);
-                        let simKanaNorm = getSimilarity(spokenNorm, targetKanaNorm2);
+                        for (let variant of variantsToTest) {
+                            let spokenClean = variant.replace(/[。、！？\s]/g, '');
+                            if (!spokenClean) continue;
+                            spokenClean = normalizeNumbers(spokenClean);
+                            spokenClean = katakanaToHiragana(spokenClean);
 
-                        let bestThisRound = Math.max(simKanji, simKana, simKanjiNorm, simKanaNorm);
-                        if (bestThisRound > maxSim) maxSim = bestThisRound;
+                            if (!heardLog.includes(spokenClean)) heardLog.push(spokenClean);
 
-                        if (matchFound || simKanjiNorm >= 0.90 || simKanaNorm >= 0.90) {
-                            matchFound = true;
-                            bestSpokenClean = spokenClean;
-                            break;
-                        }
+                            let simKanji = getSimilarity(spokenClean, targetKanjiRaw);
+                            let simKana = getSimilarity(spokenClean, targetKanaNorm);
 
-                        if (!matchFound) {
-                            if (!isDictLoaded) {
-                                if (spokenClean === s.text.replace(/[。、！？\s]/g, '')) matchFound = true;
-                            } else {
-                                let kuromojiReading = getOfficialReading(spokenClean);
-                                if (kuromojiReading) {
-                                    let simKuromoji = getSimilarity(kuromojiReading, targetKanaNorm);
-                                    if (simKuromoji > maxSim) maxSim = simKuromoji;
-                                    if (simKuromoji >= 0.90) {
-                                        matchFound = true;
-                                        bestSpokenClean = spokenClean;
-                                        break;
+                            if (simKanji >= 0.90 || simKana >= 0.90) {
+                                matchFound = true;
+                                if (simKanji > maxSim) maxSim = simKanji;
+                                if (simKana > maxSim) maxSim = simKana;
+                            }
+
+                            let spokenNorm = normalizeJapanese(variant);
+                            let targetKanjiNorm = normalizeJapanese(targetKanjiRaw);
+                            let targetKanaNorm2 = normalizeJapanese(targetKanaRaw);
+
+                            let simKanjiNorm = getSimilarity(spokenNorm, targetKanjiNorm);
+                            let simKanaNorm = getSimilarity(spokenNorm, targetKanaNorm2);
+
+                            let bestThisRound = Math.max(simKanji, simKana, simKanjiNorm, simKanaNorm);
+                            if (bestThisRound > maxSim) maxSim = bestThisRound;
+
+                            if (matchFound || simKanjiNorm >= 0.90 || simKanaNorm >= 0.90) {
+                                matchFound = true;
+                                bestSpokenClean = spokenClean;
+                                break;
+                            }
+
+                            if (!matchFound) {
+                                if (!isDictLoaded) {
+                                    if (spokenClean === targetKanjiRaw) matchFound = true;
+                                } else {
+                                    let kuromojiReading = getOfficialReading(spokenClean);
+                                    if (kuromojiReading) {
+                                        let simKuromoji = getSimilarity(kuromojiReading, targetKanaNorm);
+                                        if (simKuromoji > maxSim) maxSim = simKuromoji;
+                                        if (simKuromoji >= 0.90) {
+                                            matchFound = true;
+                                            bestSpokenClean = spokenClean;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        let baseSim = getSimilarity(spokenClean, targetKanaRaw);
-                        if (baseSim > maxSim) maxSim = baseSim;
-                        if (baseSim >= 0.9) matchFound = true;
+                            let baseSim = getSimilarity(spokenClean, targetKanaRaw);
+                            if (baseSim > maxSim) maxSim = baseSim;
+                            if (baseSim >= 0.9) matchFound = true;
 
-                        if (matchFound) {
-                            bestSpokenClean = spokenClean;
-                            break;
+                            if (matchFound) {
+                                bestSpokenClean = spokenClean;
+                                break;
+                            }
                         }
+                        if (matchFound) break;
                     }
 
-                    if (!bestSpokenClean) bestSpokenClean = heardLog[0];
+                    if (!bestSpokenClean && heardLog.length > 0) bestSpokenClean = heardLog[0];
 
                     document.getElementById('debug').innerText = "Hearing: " + bestSpokenClean + " (Sim: " + (maxSim * 100).toFixed(0) + "%)";
 
