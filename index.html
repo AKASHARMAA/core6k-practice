@@ -50,7 +50,6 @@
             --mic-bg: linear-gradient(135deg, #6366f1, #4f46e5);
             /* Keep mic pop */
             --mic-shadow: rgba(99, 102, 241, 0.2);
-            
         }
 
         body {
@@ -63,7 +62,6 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            background-image: url('https://iili.io/qJI0gIV.md.png');
         }
 
         #main-container {
@@ -350,6 +348,25 @@
             animation: pulse 1.5s infinite;
         }
 
+        #btn-mic.speaking {
+            background: #3b82f6;
+            animation: pulse-blue 1.5s infinite;
+        }
+
+        @keyframes pulse-blue {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
         hr {
             border: 0;
             height: 1px;
@@ -458,7 +475,7 @@
             <div class="controls">
                 <button class="btn-nav" onclick="prevCard()" title="Previous (Left Arrow)"><i
                         class="fas fa-arrow-left"></i></button>
-                <button id="btn-mic" onclick="startListening()" title="Start/Stop (Space)"><i
+                <button id="btn-mic" onclick="togglePlayListen()" title="Start/Stop (Space)"><i
                         class="fas fa-microphone"></i></button>
                 <button class="btn-nav" onclick="nextCard()" title="Next (Right Arrow)"><i
                         class="fas fa-arrow-right"></i></button>
@@ -694,7 +711,7 @@
                         recognition.stop();
                         setTimeout(() => {
                             nextCard();
-                            if (isContinuous) startListening(); // Resume listening after skip
+                            if (isContinuous) speakAndListen(); // Resume listening after skip
                         }, 500);
                         return;
                     }
@@ -804,7 +821,7 @@
                         if (isContinuous) {
                             setTimeout(() => {
                                 nextCard();
-                                startListening();
+                                speakAndListen();
                             }, 1500);
                         } else {
                             setTimeout(() => nextCard(), 1000);
@@ -818,7 +835,7 @@
                         // AUTO-RETRY
                         if (isContinuous) {
                             setTimeout(() => {
-                                startListening();
+                                speakAndListen();
                             }, 2000);
                         }
                     }
@@ -837,12 +854,12 @@
                 // --- CONTINUOUS MODE RESTART ---
                 // If Continuous Mode is ON, and we didn't manually stop it (isManualStop),
                 // restart listening after 2 seconds.
-                if (isContinuous && !isManualStop) {
+                if (isContinuous && !isManualStop && !isSpeaking) {
                     console.log("Continuous Mode: Restarting in 2s...");
                     document.getElementById('status').innerText = "Restarting...";
                     setTimeout(() => {
                         // Only restart if still continuous and not listening
-                        if (isContinuous && !isListening) startListening();
+                        if (isContinuous && !isListening && !isSpeaking && !isManualStop) speakAndListen();
                     }, 2000);
                 }
             };
@@ -853,7 +870,7 @@
             recognition.onerror = function (event) {
                 if (event.error === 'no-speech' && isContinuous) {
                     document.getElementById('status').innerText = "No speech detected. Listening again...";
-                    setTimeout(() => startListening(), 1000);
+                    setTimeout(() => speakAndListen(), 1000);
                     return;
                 }
                 document.getElementById('status').innerText = "Error: " + event.error;
@@ -962,10 +979,73 @@
 
         let isListening = false;
         let isManualStop = false; // Flag to track manual vs auto stop
+        let isSpeaking = false;
+
+        function speakAndListen() {
+            if (isListening) recognition.stop();
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+
+            isSpeaking = true;
+            isManualStop = false;
+
+            const btnMic = document.getElementById('btn-mic');
+            btnMic.classList.remove('listening');
+            btnMic.classList.add('speaking');
+
+            document.getElementById('status').innerHTML = '<i class="fas fa-volume-up"></i> Speaking...';
+            document.getElementById('status').style.color = "#3b82f6";
+            document.getElementById('debug').innerText = "";
+
+            if (filteredSentences.length === 0 || currentIndex >= filteredSentences.length) {
+                isSpeaking = false;
+                btnMic.classList.remove('speaking');
+                return;
+            }
+
+            const s = filteredSentences[currentIndex];
+            const utterance = new SpeechSynthesisUtterance(s.text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.9;
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                btnMic.classList.remove('speaking');
+                if (!isManualStop) {
+                    startListening();
+                }
+            };
+
+            utterance.onerror = (e) => {
+                console.error("SpeechSynthesis error:", e);
+                isSpeaking = false;
+                btnMic.classList.remove('speaking');
+                if (!isManualStop) {
+                    startListening();
+                }
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function togglePlayListen() {
+            if (isSpeaking || isListening) {
+                isManualStop = true;
+                if (isListening) recognition.stop();
+                if (isSpeaking) {
+                    window.speechSynthesis.cancel();
+                    isSpeaking = false;
+                    document.getElementById('btn-mic').classList.remove('speaking');
+                }
+                isListening = false;
+                document.getElementById('btn-mic').classList.remove('listening');
+                resetStatus();
+                return;
+            }
+            speakAndListen();
+        }
 
         function startListening() {
             if (!recognition) return;
-            isManualStop = false; // Reset flag
 
             if (isListening) {
                 isManualStop = true; // User clicked stop
@@ -998,7 +1078,7 @@
 
 
         document.addEventListener('keydown', (event) => {
-            if (event.code === 'Space') { event.preventDefault(); startListening(); }
+            if (event.code === 'Space') { event.preventDefault(); togglePlayListen(); }
             else if (event.code === 'ArrowRight') nextCard();
             else if (event.code === 'ArrowLeft') prevCard();
         });
