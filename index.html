@@ -968,6 +968,7 @@
             document.getElementById('word-meaning').innerText = s.word_meaning;
             document.getElementById('sentence-meaning').innerText = s.sentence_meaning;
             resetStatus();
+            hasPlayedCurrentCard = false;
         }
 
         function resetStatus() {
@@ -980,10 +981,18 @@
         let isListening = false;
         let isManualStop = false; // Flag to track manual vs auto stop
         let isSpeaking = false;
+        let hasPlayedCurrentCard = false;
 
         function speakAndListen() {
             if (isListening) recognition.stop();
             if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+
+            if (hasPlayedCurrentCard) {
+                isSpeaking = false;
+                isManualStop = false;
+                startListening();
+                return;
+            }
 
             isSpeaking = true;
             isManualStop = false;
@@ -1009,6 +1018,7 @@
 
             utterance.onend = () => {
                 isSpeaking = false;
+                hasPlayedCurrentCard = true;
                 btnMic.classList.remove('speaking');
                 if (!isManualStop) {
                     startListening();
@@ -1018,6 +1028,7 @@
             utterance.onerror = (e) => {
                 console.error("SpeechSynthesis error:", e);
                 isSpeaking = false;
+                hasPlayedCurrentCard = true;
                 btnMic.classList.remove('speaking');
                 if (!isManualStop) {
                     startListening();
