@@ -570,11 +570,21 @@
             <div id="progress-container">
                 <div id="progress-bar"></div>
             </div>
+
             <div class="content">
                 <span class="label">Target Word</span>
                 <h1 id="target-word">...</h1>
                 <p class="meaning" id="word-meaning">...</p>
                 <hr>
+                <div class="controls">
+                    <button class="btn-nav" onclick="prevCard()" title="Previous (Left Arrow)"><i
+                            class="fas fa-arrow-left"></i></button>
+                    <button id="btn-mic" onclick="togglePlayListen()" title="Start/Stop (Space)"><i
+                            class="fas fa-microphone"></i></button>
+                    <button class="btn-nav" onclick="nextCard()" title="Next (Right Arrow)"><i
+                            class="fas fa-arrow-right"></i></button>
+                </div>
+                <div class="keyboard-hint">Use Arrow Keys & Space</div>
                 <span class="label">Sentences</span>
                 <div id="sentences-container">
                     <!-- Sentences injected here dynamically -->
@@ -582,15 +592,6 @@
                 <div id="status"><i class="fas fa-arrow-up"></i> Press Space</div>
                 <div id="debug"></div>
             </div>
-            <div class="controls">
-                <button class="btn-nav" onclick="prevCard()" title="Previous (Left Arrow)"><i
-                        class="fas fa-arrow-left"></i></button>
-                <button id="btn-mic" onclick="togglePlayListen()" title="Start/Stop (Space)"><i
-                        class="fas fa-microphone"></i></button>
-                <button class="btn-nav" onclick="nextCard()" title="Next (Right Arrow)"><i
-                        class="fas fa-arrow-right"></i></button>
-            </div>
-            <div class="keyboard-hint">Use Arrow Keys & Space</div>
         </div>
     </div>
 
@@ -1026,8 +1027,8 @@
 
                         // trigger Gamification CSS Animation
                         const container = document.getElementById('sentences-container');
-                        if (container.children[currentSentenceIdx]) {
-                            container.children[currentSentenceIdx].classList.add('solved-sentence');
+                        if (container.children[0]) {
+                            container.children[0].classList.add('solved-sentence');
                         }
 
                         // AUTO-ADVANCE (Delayed to let animation play)
@@ -1184,6 +1185,8 @@
             container.innerHTML = "";
 
             vocab.sentences.forEach((s, idx) => {
+                if (idx < currentSentenceIdx) return;
+
                 const div = document.createElement('div');
                 div.className = "sentence-block" + (idx === currentSentenceIdx ? " active-sentence" : " inactive-sentence");
 
