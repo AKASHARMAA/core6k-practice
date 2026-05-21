@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japanese Vocabulary Flashcards</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            transition: background-color 0.5s;
+            color: white;
+        }
+
+        .content {
+            max-width: 80%;
+            font-size: 4rem;
+        }
+
+        .upload-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .upload-container input[type="file"] {
+            display: none;
+        }
+
+        .upload-container label {
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .upload-container label:hover {
+            background-color: #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                font-size: 2.5rem;
+            }
+        }
+
+        .card-number {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .autoplay-button {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .autoplay-button:hover {
+            background-color: #ddd;
+        }
+
+        .remove-card-button {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: yellow;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            border: 1px solid black;
+        }
+
+        .remove-card-button:hover {
+            background-color: #ddd;
+        }
+
+        .group-selector {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .group-selector:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body id="flashcard">
+    <div class="upload-container">
+        <input type="file" id="csvFileInput" accept=".csv" />
+        <label for="csvFileInput">Upload CSV File</label>
+    </div>
+    <div class="group-selector" id="groupSelector">Select Group</div>
+    <div class="remove-card-button" id="removeCardButton">❌</div>
+    <div class="card-number" id="cardNumber"></div>
+    <div class="content" id="content">Upload a CSV file to start</div>
+    <div class="autoplay-button" id="autoplayButton">Start Autoplay</div>
+
+    <script>
+        let flashcards = [];
+        let currentCardIndex = 0;
+        let showingFront = true;
+        let speechTimeout;
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let lastTap = 0;
+        const doubleTapDelay = 300;
+        let isAutoplay = false;
+        let autoplayInterval;
+        let currentGroup = 0;
+        let groupedFlashcards = [];
+        let groupSize = prompt("Enter the group size");
+
+        localStorage.setItem("groupSize", groupSize);
+
+        // Load existing flashcards from localStorage when the page loads
+        loadFlashcardsFromLocalStorage();
+
+        document.getElementById('csvFileInput').addEventListener('change', loadCSV);
+        document.addEventListener('keydown', handleKeydown);
+        document.getElementById('flashcard').addEventListener('touchstart', handleTouchStart);
+        document.getElementById('flashcard').addEventListener('touchend', handleTouchEnd);
+        document.getElementById('flashcard').addEventListener('click', handleDoubleTap);
+        document.getElementById('autoplayButton').addEventListener('click', toggleAutoplay);
+        document.getElementById('groupSelector').addEventListener('click', selectGroup);
+
+        function loadCSV() {
+            const fileInput = document.getElementById('csvFileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert('Please upload a CSV file.');
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const newFlashcards = parseCSV(e.target.result);
+                if (newFlashcards.length) {
+                    // Merge new flashcards with existing ones (avoid duplicates)
+                    saveFlashcardsToLocalStorage(newFlashcards);
+                    // Reload flashcards from localStorage to include the newly added ones
+                    loadFlashcardsFromLocalStorage();
+                    currentCardIndex = 0;
+                    showingFront = true;
+                    updateCard();
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            return text.split('\n').map(row => row.trim()).filter(row => row)
+                .slice(1).map(row => {
+                    const values = row.split(',');
+                    return {
+                        word: values[0],
+                        kana: values[1],
+                        romaji: values[2],
+                        meaning: values.slice(3).join(',')
+                    };
+                });
+        }
+
+        function saveFlashcardsToLocalStorage(newFlashcards) {
+            let existingFlashcards = JSON.parse(localStorage.getItem('flashcards')) || [];
+            const existingWords = new Set(existingFlashcards.map(card => card.word));
+
+            newFlashcards.forEach(card => {
+                if (!existingWords.has(card.word)) {
+                    existingFlashcards.push(card);
+                    existingWords.add(card.word);
+                }
+            });
+
+            localStorage.setItem('flashcards', JSON.stringify(existingFlashcards));
+        }
+
+        function loadFlashcardsFromLocalStorage() {
+            flashcards = JSON.parse(localStorage.getItem('flashcards')) || [];
+            groupFlashcards();
+        }
+
+        function groupFlashcards() {
+            let groupSize = parseInt(localStorage.getItem('groupSize')) || 100
+            groupedFlashcards = [];
+            for (let i = 0; i < flashcards.length; i += groupSize) {
+                groupedFlashcards.push(flashcards.slice(i, i + groupSize));
+            }
+            currentGroup = 0;
+            updateGroupSelector();
+        }
+
+        function updateGroupSelector() {
+            const groupSelector = document.getElementById('groupSelector');
+            groupSelector.textContent = `Group ${currentGroup + 1}/${groupedFlashcards.length}`;
+        }
+
+        function selectGroup() {
+            const groupIndex = prompt(`Enter group number (1-${groupedFlashcards.length}):`);
+            if (groupIndex === null || isNaN(groupIndex) || groupIndex < 1 || groupIndex > groupedFlashcards.length) {
+                alert('Invalid group number.');
+                return;
+            }
+            currentGroup = groupIndex - 1;
+            currentCardIndex = 0;
+            showingFront = true;
+            updateGroupSelector();
+            updateCard();
+        }
+
+        function updateCard() {
+            const group = groupedFlashcards[currentGroup];
+            if (!group || group.length === 0) {
+                document.getElementById('content').textContent = 'No cards in this group.';
+                document.getElementById('cardNumber').textContent = '';
+                return;
+            }
+
+            const flashcard = group[currentCardIndex];
+            document.body.style.backgroundColor = showingFront ? '#4CAF50' : '#f1c40f';
+            document.getElementById('content').innerHTML = showingFront
+                ? `<strong>${flashcard.word}</strong><br>${flashcard.kana}`
+                : flashcard.meaning;
+
+            document.getElementById('cardNumber').textContent = `${currentCardIndex + 1}/${group.length}`;
+
+            clearTimeout(speechTimeout);
+            speechSynthesis.cancel();
+
+            if (showingFront) {
+                // TODO: Want text to speech to say "Meaning of" in en-US
+                speechTimeout = setTimeout(() => speakText(flashcard.kana, 'ja-JP'), 500);
+            } else {
+                // TODO: Want text to speech to say "is" in en-US
+                speechTimeout = setTimeout(() => speakText(flashcard.meaning, 'en-US'), 500);
+            }
+        }
+
+        function flipCard() {
+            showingFront = !showingFront;
+            updateCard();
+        }
+
+        function nextCard() {
+            const group = groupedFlashcards[currentGroup];
+            if (currentCardIndex < group.length - 1) {
+                currentCardIndex++;
+                showingFront = true;
+                updateCard();
+            } else if (isAutoplay) {
+                currentCardIndex = 0;
+                showingFront = true;
+                updateCard();
+            }
+        }
+
+        function previousCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                showingFront = true;
+                updateCard();
+            }
+        }
+
+        function speakText(text, lang) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.onend = () => {
+                    if (isAutoplay) {
+                        setTimeout(() => {
+                            if (showingFront) {
+                                flipCard();
+                            } else {
+                                nextCard();
+                            }
+                        }, 1000);
+                    }
+                };
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function handleKeydown(event) {
+            if (event.key === 'ArrowRight') nextCard();
+            if (event.key === 'ArrowLeft') previousCard();
+            if (event.key === ' ') flipCard();
+        }
+
+        function handleTouchStart(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        }
+
+        function handleTouchEnd(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+
+            if (swipeDistance > swipeThreshold) {
+                previousCard();
+            } else if (swipeDistance < -swipeThreshold) {
+                nextCard();
+            }
+        }
+
+        function handleDoubleTap() {
+            const now = Date.now();
+            if (now - lastTap < doubleTapDelay) {
+                flipCard();
+            }
+            lastTap = now;
+        }
+
+        function toggleAutoplay() {
+            isAutoplay = !isAutoplay;
+            document.getElementById('autoplayButton').textContent = isAutoplay ? 'Stop Autoplay' : 'Start Autoplay';
+            if (isAutoplay) {
+                updateCard();
+            } else {
+                clearTimeout(speechTimeout);
+                speechSynthesis.cancel();
+            }
+        }
+
+        document.getElementById('removeCardButton').addEventListener('click', removeCurrentCard);
+
+        function removeCurrentCard() {
+            const group = groupedFlashcards[currentGroup];
+            if (group.length === 0) return;
+
+            // Get the current flashcard to remove
+            const flashcardToRemove = group[currentCardIndex];
+
+            // Remove the current card from the group
+            group.splice(currentCardIndex, 1);
+
+            // Now update the global flashcards array in localStorage
+            flashcards = flashcards.filter(card => card.word !== flashcardToRemove.word);
+
+            // Update localStorage with the new flashcards array
+            localStorage.setItem('flashcards', JSON.stringify(flashcards));
+
+            // If the group is empty after removal, reset the UI
+            if (group.length === 0) {
+                document.getElementById('content').textContent = 'No cards in this group.';
+                document.getElementById('cardNumber').textContent = '';
+                document.body.style.backgroundColor = '#4CAF50'; // Reset background color
+                return;
+            }
+
+            // Adjust the currentCardIndex if it's out of bounds
+            if (currentCardIndex >= group.length) {
+                currentCardIndex = group.length - 1;
+            }
+
+            // Update the card display
+            showingFront = true;
+            updateCard();
+        }
+    </script>
+</body>
+
+</html>
