@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport configuration for strict mobile responsiveness and preventing zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JLPT Kanji Repetition Tracker</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --bg: #f8f9fa;
+            --canvas-bg: #ffffff;
+            --border: #dee2e6;
+            --btn-bg: #e9ecef;
+            --btn-hover: #ced4da;
+            --btn-active: #0d6efd;
+            --trace-color: rgba(128, 128, 128, 0.35);
+            /* Standard Mincho typography stack */
+            --mincho: 'Sawarabi Mincho', 'Kozuka Mincho Pro', 'Yu Mincho', 'MS Mincho', 'Hiragino Mincho Pro', serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Strict non-overflow UI */
+        }
+
+        header {
+            padding: 10px;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .controls-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, input, button {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            background: #fff;
+        }
+
+        .kanji-info {
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #666;
+            padding: 5px 10px;
+            background: #eee;
+            flex-shrink: 0;
+        }
+
+        /* Canvas Container - Takes up remaining space */
+        .canvas-container {
+            flex-grow: 1;
+            position: relative;
+            margin: 10px;
+            background: var(--canvas-bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* The background trace character */
+        #traceChar {
+            position: absolute;
+            font-family: var(--mincho);
+            color: var(--trace-color);
+            line-height: 1;
+            user-select: none;
+            pointer-events: none; /* Let clicks pass through to canvas */
+            text-align: center;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none; /* Prevents scrolling while drawing on mobile */
+            cursor: crosshair;
+        }
+
+        .controls-bottom {
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr;
+            gap: 10px;
+            background: #fff;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        button {
+            background: var(--btn-bg);
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--btn-active);
+            color: white;
+            border: none;
+        }
+
+        .export-btn {
+            grid-column: 1 / -1;
+            background: #198754;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="controls-top">
+            <select id="levelSelect">
+                <option value="N5">JLPT N5 (103)</option>
+                <option value="N4">JLPT N4 (181)</option>
+                <option value="N3">JLPT N3 (361)</option>
+                <option value="N2">JLPT N2 (415)</option>
+                <option value="N1">JLPT N1 (1235)</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Search Meaning or Jump to Index..." style="flex-grow: 1;">
+        </div>
+        <div class="kanji-info">
+            <div id="meaningDisplay" style="font-weight: bold; font-size: 18px;">-</div>
+            <div id="readingDisplay">On: - | Kun: -</div>
+        </div>
+    </header>
+
+    <div class="stats-bar">
+        <span id="repDisplay">Reps: 0 / 50</span>
+        <span id="indexDisplay">Kanji: 1 / 103</span>
+        <span id="completionDisplay">Level: 0%</span>
+    </div>
+
+    <div class="canvas-container" id="canvasWrap">
+        <div id="traceChar">一</div>
+        <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <div class="controls-bottom">
+        <button id="btnPrev">← Prev</button>
+        <button id="btnClear">Clear</button>
+        <button id="btnNext" class="btn-primary">Log Rep & Next →</button>
+        <button id="btnExport" class="export-btn">Export Progress (CSV)</button>
+    </div>
+
+    <script>
+        // --- DATASET ---
+        // Placeholder dataset. Expand this object with your full 2,100 Kanji dataset.
+        const kanjiDB = {
+            "N5": [
+                { kanji: "一", onyomi: "イチ, イツ", kunyomi: "ひと-, ひと.つ", meaning: "One" },
+                { kanji: "二", onyomi: "ニ, ジ", kunyomi: "ふた, ふた.つ", meaning: "Two" },
+                { kanji: "三", onyomi: "サン", kunyomi: "み, み.つ, みっ.つ", meaning: "Three" },
+                { kanji: "四", onyomi: "シ", kunyomi: "よ, よ.つ, よっ.つ, よん", meaning: "Four" },
+                { kanji: "五", onyomi: "ゴ", kunyomi: "いつ, いつ.つ", meaning: "Five" }
+                // Add remaining N5...
+            ],
+            "N4": [{ kanji: "会", onyomi: "カイ, エ", kunyomi: "あ.う", meaning: "Meeting, Meet" }],
+            "N3": [{ kanji: "政", onyomi: "セイ, ショウ", kunyomi: "まつりごと", meaning: "Politics, Government" }],
+            "N2": [{ kanji: "党", onyomi: "トウ", kunyomi: "なかま, むら", meaning: "Party, Faction" }],
+            "N1": [{ kanji: "艦", onyomi: "カン", kunyomi: "", meaning: "Warship" }]
+        };
+
+        const TARGET_REPS = 50;
+
+        // --- STATE MANAGEMENT ---
+        let currentLevel = "N5";
+        let currentIndex = 0;
+        let repData = JSON.parse(localStorage.getItem('kanjiReps')) || {}; 
+        // repData structure: { "一": { count: 5, lastPracticed: "2023-10-10..." } }
+
+        // --- DOM ELEMENTS ---
+        const levelSelect = document.getElementById('levelSelect');
+        const searchInput = document.getElementById('searchInput');
+        const meaningDisplay = document.getElementById('meaningDisplay');
+        const readingDisplay = document.getElementById('readingDisplay');
+        const repDisplay = document.getElementById('repDisplay');
+        const indexDisplay = document.getElementById('indexDisplay');
+        const completionDisplay = document.getElementById('completionDisplay');
+        const traceChar = document.getElementById('traceChar');
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const canvasWrap = document.getElementById('canvasWrap');
+
+        // --- CANVAS RESIZING & DRAWING LOGIC ---
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            canvas.width = canvasWrap.clientWidth;
+            canvas.height = canvasWrap.clientHeight;
+            
+            // Set trace character size to 85% of canvas height
+            const fontSize = canvas.height * 0.85;
+            traceChar.style.fontSize = `${fontSize}px`;
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 12; // Brush thickness
+            ctx.strokeStyle = '#000000';
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Drawing Event Listeners (Mouse & Touch)
+        function startPosition(e) {
+            isDrawing = true;
+            draw(e);
+        }
+        function endPosition() {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); 
+            
+            let x, y;
+            const rect = canvas.getBoundingClientRect();
+            
+            if (e.type.includes('touch')) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseleave', endPosition);
+
+        canvas.addEventListener('touchstart', startPosition, { passive: false });
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw, { passive: false });
+
+        // --- UI UPDATES ---
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function loadKanji() {
+            const list = kanjiDB[currentLevel];
+            if (!list || list.length === 0) return;
+            
+            const item = list[currentIndex];
+            const k = item.kanji;
+
+            // Init rep data if missing
+            if (!repData[k]) repData[k] = { count: 0, lastPracticed: null };
+
+            traceChar.textContent = k;
+            meaningDisplay.textContent = item.meaning;
+            readingDisplay.textContent = `On: ${item.onyomi} | Kun: ${item.kunyomi}`;
+            
+            repDisplay.textContent = `Reps: ${repData[k].count} / ${TARGET_REPS}`;
+            indexDisplay.textContent = `Kanji: ${currentIndex + 1} / ${list.length}`;
+            
+            // Calculate Level Completion %
+            let completedInLevel = 0;
+            list.forEach(i => {
+                if(repData[i.kanji] && repData[i.kanji].count >= TARGET_REPS) completedInLevel++;
+            });
+            completionDisplay.textContent = `Level: ${Math.round((completedInLevel / list.length) * 100)}%`;
+
+            clearCanvas();
+        }
+
+        function saveRep() {
+            const list = kanjiDB[currentLevel];
+            const k = list[currentIndex].kanji;
+            
+            repData[k].count += 1;
+            repData[k].lastPracticed = new Date().toISOString();
+            localStorage.setItem('kanjiReps', JSON.stringify(repData));
+        }
+
+        function nextKanji() {
+            const list = kanjiDB[currentLevel];
+            saveRep(); // Log rep on next
+            currentIndex = (currentIndex + 1) % list.length;
+            loadKanji();
+        }
+
+        function prevKanji() {
+            const list = kanjiDB[currentLevel];
+            currentIndex = (currentIndex - 1 + list.length) % list.length;
+            loadKanji();
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('btnNext').addEventListener('click', nextKanji);
+        document.getElementById('btnPrev').addEventListener('click', prevKanji);
+        document.getElementById('btnClear').addEventListener('click', clearCanvas);
+        
+        levelSelect.addEventListener('change', (e) => {
+            currentLevel = e.target.value;
+            currentIndex = 0;
+            loadKanji();
+        });
+
+        // Search/Jump functionality
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const list = kanjiDB[currentLevel];
+            const index = list.findIndex(k => 
+                k.meaning.toLowerCase().includes(term) || 
+                k.onyomi.includes(term) || 
+                k.kunyomi.includes(term)
+            );
+            
+            // Check if input is a pure number to jump to index
+            if (!isNaN(term) && term > 0 && term <= list.length) {
+                currentIndex = parseInt(term) - 1;
+                loadKanji();
+            } else if (index !== -1) {
+                currentIndex = index;
+                loadKanji();
+            }
+        });
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (e.target === searchInput) return; // Don't trigger if typing in search
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextKanji();
+            } else if (e.key === 'ArrowLeft') {
+                prevKanji();
+            }
+        });
+
+        // --- CSV EXPORT ---
+        document.getElementById('btnExport').addEventListener('click', () => {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Kanji,JLPT Level,Meaning,Onyomi,Kunyomi,Rep Count,Target Reps,Status,Last Practiced\n";
+
+            for (const [level, list] of Object.entries(kanjiDB)) {
+                list.forEach(item => {
+                    const k = item.kanji;
+                    const data = repData[k] || { count: 0, lastPracticed: "" };
+                    const status = data.count >= TARGET_REPS ? "Complete" : "In Progress";
+                    
+                    // Escape quotes for CSV
+                    const meaning = `"${item.meaning.replace(/"/g, '""')}"`;
+                    
+                    const row = [
+                        k, level, meaning, item.onyomi, item.kunyomi,
+                        data.count, TARGET_REPS, status, data.lastPracticed || "Never"
+                    ];
+                    csvContent += row.join(",") + "\n";
+                });
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `jlpt_kanji_reps_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // --- INITIALIZATION ---
+        // Run after short delay to ensure fonts/layout are ready
+        setTimeout(() => {
+            resizeCanvas();
+            loadKanji();
+        }, 100);
+
+    </script>
+</body>
+</html>
