@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kanji Study</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kanji Writing Practice</title>
   <style>
-    /* 1. Import a clean Mincho font from Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&display=swap');
 
     :root {
       --mincho-font: 'Sawarabi Mincho', "Yu Mincho", "MS Mincho", serif;
-      --bg-color: #faf9f6; /* Off-white for less eye strain */
+      --bg-color: #faf9f6;
       --text-color: #333;
     }
 
@@ -21,92 +20,97 @@
       background-color: var(--bg-color);
       font-family: var(--mincho-font);
       color: var(--text-color);
+      touch-action: none; /* Prevents pull-to-refresh on mobile while drawing */
     }
 
-    /* 2. The Main Container */
+    /* 1. Layout Container */
     .app-wrapper {
       display: flex;
       flex-direction: column;
-      height: 100vh; /* Locks the app to the screen height */
+      height: 100vh;
       position: relative;
-      overflow: hidden; /* Prevents the whole page from bouncing */
+      overflow: hidden;
     }
 
-    /* 3. The Background Kanji */
+    /* 2. Background Kanji */
     .background-kanji {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      
-      font-size: 50vmin; /* Scales with the screen safely */
-      color: rgba(0, 0, 0, 0.04); /* Very faint watermark */
+      font-size: 50vmin;
+      color: rgba(0, 0, 0, 0.04);
       padding: 2rem; 
-      
-      /* CRITICAL FIX: Stops background from blocking button clicks */
-      pointer-events: none; 
+      pointer-events: none; /* Crucial: Lets you click through it */
       z-index: 0;
     }
 
-    /* 4. The Scrollable Content */
+    /* 3. Scrollable Main Content */
     .kanji-content {
-      flex: 1; /* Takes up all available space above the footer */
-      overflow-y: auto; /* Restores vertical scrolling! */
-      padding: 2rem;
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
       z-index: 1;
-      max-width: 800px;
-      margin: 0 auto; /* Centers content on wide screens */
+      max-width: 600px;
+      margin: 0 auto;
       width: 100%;
       box-sizing: border-box;
     }
 
-    /* Typography & Content Styling */
-    .main-kanji-display {
-      font-size: 6rem;
-      text-align: center;
-      margin: 2rem 0;
-      color: #2c3e50;
-    }
-
-    .section-title {
-      border-bottom: 2px solid #eaeaea;
-      padding-bottom: 0.5rem;
-      margin-top: 2rem;
-      color: #555;
-    }
-
-    .reading-box {
+    /* 4. Canvas Writing Area */
+    .canvas-container {
       background: white;
-      padding: 1.5rem;
+      border: 2px dashed #ccc;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+      margin: 1rem 0;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      border-radius: 8px;
+      touch-action: none;
+    }
+
+    /* 5. Info Boxes */
+    .info-box {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
       margin-bottom: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
     }
 
-    .vocab-list {
-      list-style-type: none;
-      padding: 0;
+    .info-title {
+      font-size: 0.9rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 0 0.5rem 0;
     }
 
-    .vocab-list li {
-      padding: 1rem 0;
-      border-bottom: 1px dashed #ddd;
+    .info-content {
+      margin: 0;
       font-size: 1.2rem;
     }
 
-    /* 5. The Always-Accessible Action Bar */
+    /* 6. Action Bar */
     .action-bar {
       display: flex;
       justify-content: space-between;
       gap: 1rem;
-      padding: 1.5rem 2rem;
+      padding: 1rem 1.5rem;
       background: white;
       border-top: 1px solid #eaeaea;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-      z-index: 10; /* Forces buttons to sit above everything else */
+      z-index: 10;
     }
 
-    /* Button Styling */
     .btn {
       flex: 1;
       padding: 1rem;
@@ -118,70 +122,173 @@
       transition: background 0.2s;
     }
 
-    .btn-secondary {
-      background: #f0f0f0;
-      color: #555;
-    }
-    .btn-secondary:hover {
-      background: #e4e4e4;
-    }
+    .btn-secondary { background: #f0f0f0; color: #555; }
+    .btn-secondary:hover { background: #e4e4e4; }
+    .btn-primary { background: #2c3e50; color: white; }
+    .btn-primary:hover { background: #1a252f; }
+    .btn-clear { background: #fff4f4; color: #d9534f; border: 1px solid #ffcccc; margin-top: 0.5rem; width: 100%; }
 
-    .btn-primary {
-      background: #2c3e50;
-      color: white;
-    }
-    .btn-primary:hover {
-      background: #1a252f;
-    }
+    #loading-state { text-align: center; font-size: 1.2rem; padding: 2rem; color: #777; }
   </style>
 </head>
 <body>
 
   <div class="app-wrapper">
-    <!-- Decorative Background Layer -->
-    <div class="background-kanji">語</div>
+    <div class="background-kanji" id="bg-kanji"></div>
 
-    <!-- Main Scrollable Content -->
     <main class="kanji-content">
       
-      <div class="main-kanji-display">語</div>
-      
-      <div class="reading-box">
-        <h2 class="section-title">Meaning</h2>
-        <p>word, speech, language</p>
+      <div id="loading-state">Loading Kanji Data...</div>
 
-        <h2 class="section-title">Readings</h2>
-        <p><strong>Onyomi:</strong> ゴ (go)</p>
-        <p><strong>Kunyomi:</strong> かた.る (kata.ru), かた.らう (kata.rau)</p>
+      <div id="kanji-ui" style="display: none;">
+        <h1 style="text-align: center; font-size: 3rem; margin: 0 0 1rem 0;" id="display-kanji"></h1>
+        
+        <div class="info-box">
+          <p class="info-title">Meaning</p>
+          <p class="info-content" id="kanji-meaning"></p>
+        </div>
+
+        <div class="info-box">
+          <p class="info-title">Onyomi</p>
+          <p class="info-content" id="kanji-onyomi"></p>
+          <p class="info-title" style="margin-top: 1rem;">Kunyomi</p>
+          <p class="info-content" id="kanji-kunyomi"></p>
+        </div>
+
+        <div class="info-box" style="background: transparent; box-shadow: none; padding: 0;">
+          <p class="info-title" style="text-align: center;">Practice Area</p>
+          <div class="canvas-container">
+            <canvas id="drawing-pad"></canvas>
+          </div>
+          <button class="btn btn-clear" id="btn-clear">Clear Canvas</button>
+        </div>
       </div>
-
-      <div class="reading-box">
-        <h2 class="section-title">Vocabulary Examples</h2>
-        <!-- Extra content added to demonstrate the scroll works -->
-        <ul class="vocab-list">
-          <li><strong>言語 (げんご):</strong> language</li>
-          <li><strong>日本語 (にほんご):</strong> Japanese language</li>
-          <li><strong>英語 (えいご):</strong> English language</li>
-          <li><strong>物語 (ものがたり):</strong> tale, story, legend</li>
-          <li><strong>語る (かたる):</strong> to talk, to tell, to recite</li>
-          <li><strong>敬語 (けいご):</strong> honorific language</li>
-          <li><strong>単語 (たんご):</strong> word, vocabulary</li>
-          <li><strong>外国語 (がいこくご):</strong> foreign language</li>
-          <li><strong>母語 (ぼご):</strong> mother tongue</li>
-        </ul>
-      </div>
       
-      <!-- Blank space at the bottom to ensure the last item isn't hugged by the footer -->
-      <div style="height: 2rem;"></div> 
-
+      <div style="height: 2rem;"></div> <!-- Scroll spacer -->
     </main>
 
-    <!-- Action Bar (Always accessible at the bottom) -->
     <footer class="action-bar">
-      <button class="btn btn-secondary">Register Rep</button>
-      <button class="btn btn-primary">Next Kanji</button>
+      <button class="btn btn-secondary" id="btn-rep">Register Rep</button>
+      <button class="btn btn-primary" id="btn-next">Next Kanji</button>
     </footer>
   </div>
 
+  <script>
+    // 1. App State & Kanji List (Add as many as you want here)
+    const kanjiList = ["語", "日", "水", "火", "木", "金", "土"];
+    let currentIndex = 0;
+
+    // 2. DOM Elements
+    const bgKanji = document.getElementById('bg-kanji');
+    const displayKanji = document.getElementById('display-kanji');
+    const kanjiMeaning = document.getElementById('kanji-meaning');
+    const kanjiOnyomi = document.getElementById('kanji-onyomi');
+    const kanjiKunyomi = document.getElementById('kanji-kunyomi');
+    const loadingState = document.getElementById('loading-state');
+    const kanjiUI = document.getElementById('kanji-ui');
+
+    // 3. Fetch Data from kanjiapi.dev
+    async function loadKanji(kanji) {
+      loadingState.style.display = 'block';
+      kanjiUI.style.display = 'none';
+
+      try {
+        const response = await fetch(`https://kanjiapi.dev/v1/kanji/${kanji}`);
+        const data = await response.json();
+
+        // Update UI Text
+        bgKanji.textContent = data.kanji;
+        displayKanji.textContent = data.kanji;
+        kanjiMeaning.textContent = data.meanings.join(', ');
+        kanjiOnyomi.textContent = data.on_readings.length ? data.on_readings.join(', ') : 'None';
+        kanjiKunyomi.textContent = data.kun_readings.length ? data.kun_readings.join(', ') : 'None';
+
+        loadingState.style.display = 'none';
+        kanjiUI.style.display = 'block';
+        clearCanvas();
+
+      } catch (error) {
+        loadingState.textContent = 'Failed to load data. Please check your connection.';
+      }
+    }
+
+    // 4. Canvas Drawing Logic
+    const canvas = document.getElementById('drawing-pad');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    // Resize canvas properly based on its CSS size
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#2c3e50';
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function getPosition(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX || (e.touches && e.touches[0].clientX);
+      const y = e.clientY || (e.touches && e.touches[0].clientY);
+      return { x: x - rect.left, y: y - rect.top };
+    }
+
+    function startDrawing(e) {
+      e.preventDefault();
+      isDrawing = true;
+      const pos = getPosition(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const pos = getPosition(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+      ctx.closePath();
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Canvas Event Listeners (Mouse & Touch)
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchcancel', stopDrawing);
+
+    // 5. Button Controls
+    document.getElementById('btn-clear').addEventListener('click', clearCanvas);
+    
+    document.getElementById('btn-next').addEventListener('click', () => {
+      currentIndex = (currentIndex + 1) % kanjiList.length;
+      loadKanji(kanjiList[currentIndex]);
+    });
+
+    document.getElementById('btn-rep').addEventListener('click', () => {
+      // You can add your own repetition logic here
+      alert(`Registered rep for: ${kanjiList[currentIndex]}`);
+      document.getElementById('btn-next').click();
+    });
+
+    // 6. Initialization
+    resizeCanvas();
+    loadKanji(kanjiList[currentIndex]);
+  </script>
 </body>
 </html>
