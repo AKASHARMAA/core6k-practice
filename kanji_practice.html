@@ -9,7 +9,6 @@
 
     :root {
       --mincho-font: 'Sawarabi Mincho', "Yu Mincho", "MS Mincho", serif;
-      /* Dark Theme Variables */
       --bg-color: #121212;
       --panel-bg: #1e1e1e;
       --text-color: #e0e0e0;
@@ -17,6 +16,7 @@
       --accent-color: #64b5f6;
       --accent-hover: #90caf9;
       --canvas-stroke: #e0e0e0;
+      --success-color: #4caf50;
     }
 
     body, html {
@@ -26,10 +26,9 @@
       background-color: var(--bg-color);
       font-family: var(--mincho-font);
       color: var(--text-color);
-      touch-action: none; /* Prevents pull-to-refresh on mobile while drawing */
+      touch-action: none;
     }
 
-    /* 1. Layout Container */
     .app-wrapper {
       display: flex;
       flex-direction: column;
@@ -38,7 +37,7 @@
       overflow: hidden;
     }
 
-    /* 2. Top Navigation & Stats Bar */
+    /* Top Bar */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -49,17 +48,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       z-index: 10;
     }
-
-    .level-filter {
-      padding: 0.5rem;
-      font-family: var(--mincho-font);
-      font-size: 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      outline: none;
-      background: #2a2a2a;
-      color: var(--text-color);
-    }
+    .top-bar h2 { margin: 0; font-size: 1.2rem; font-family: sans-serif; }
 
     .stat-badge {
       background: #2a2a2a;
@@ -71,32 +60,39 @@
       border: 1px solid var(--border-color);
     }
 
-    /* 3. Background Kanji */
+    /* Views System */
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .view {
+      display: none;
+      padding: 1.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+      padding-bottom: 3rem;
+    }
+    .view.active { display: block; }
+
+    /* Background Kanji (Practice Mode Only) */
     .background-kanji {
-      position: absolute;
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       font-size: 50vmin;
       color: rgba(255, 255, 255, 0.03);
-      padding: 2rem; 
-      pointer-events: none; /* Lets you click through it */
+      pointer-events: none;
       z-index: 0;
+      display: none;
     }
 
-    /* 4. Scrollable Main Content */
-    .kanji-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.5rem;
-      z-index: 1;
-      max-width: 600px;
-      margin: 0 auto;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    /* 5. Canvas Writing Area */
+    /* Canvas & Practice Layout */
     .canvas-container {
       background: var(--panel-bg);
       border: 2px dashed #555;
@@ -108,7 +104,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    /* Tracing Text Styles */
     #trace-kanji {
       position: absolute;
       top: 50%;
@@ -116,8 +111,8 @@
       transform: translate(-50%, -50%);
       font-size: clamp(120px, 50vw, 350px);
       color: var(--text-color);
-      opacity: 0.25; /* 25% opacity for tracing */
-      pointer-events: none; /* Crucial: allows drawing over the text */
+      opacity: 0.25;
+      pointer-events: none;
       user-select: none;
       z-index: 1;
     }
@@ -129,10 +124,10 @@
       border-radius: 8px;
       touch-action: none;
       position: relative;
-      z-index: 2; /* Keeps drawing above the text */
+      z-index: 2;
     }
 
-    /* 6. Info Boxes */
+    /* Info Boxes */
     .info-box {
       background: var(--panel-bg);
       padding: 1rem 1.5rem;
@@ -140,21 +135,9 @@
       margin-bottom: 1rem;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-
-    .info-title {
-      font-size: 0.9rem;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin: 0 0 0.5rem 0;
-    }
-
-    .info-content {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    /* Text-to-Speech Clickable Styles */
+    .info-title { font-size: 0.9rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 0.5rem 0; font-family: sans-serif;}
+    .info-content { margin: 0; font-size: 1.2rem; }
+    
     .clickable-reading {
       display: inline-block;
       color: var(--accent-color);
@@ -164,66 +147,92 @@
       border-radius: 4px;
       transition: background 0.2s, color 0.2s;
     }
-    
-    .clickable-reading:hover {
-      background: rgba(100, 181, 246, 0.1);
-      color: var(--accent-hover);
-    }
+    .clickable-reading:hover { background: rgba(100, 181, 246, 0.1); color: var(--accent-hover); }
 
-    /* 7. Action Bar */
+    /* Dashboard & Progress Grids */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+    .card h3 { margin: 0 0 0.5rem 0; font-family: sans-serif; }
+    .card p { margin: 0; font-size: 0.9rem; color: #aaa; font-family: sans-serif; }
+    
+    /* Progress Bars */
+    .progress-track { background: #111; height: 8px; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+    .progress-fill { background: var(--accent-color); height: 100%; width: 0%; transition: width 0.5s ease-out; }
+    .progress-fill.complete { background: var(--success-color); }
+
+    /* Buttons */
     .action-bar {
-      display: flex;
+      display: none;
       justify-content: space-between;
       gap: 0.5rem;
       padding: 1rem 1.5rem;
       background: var(--panel-bg);
       border-top: 1px solid var(--border-color);
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
       z-index: 10;
     }
+    .action-bar.active { display: flex; }
 
-    .btn {
-      flex: 1;
-      padding: 1rem 0.5rem;
-      font-size: 1.1rem;
-      font-family: var(--mincho-font);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: bold;
-    }
-
+    .btn { flex: 1; padding: 1rem 0.5rem; font-size: 1.1rem; font-family: var(--mincho-font); border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: bold; }
     .btn-secondary { background: #333; color: #ddd; }
     .btn-secondary:hover { background: #444; }
-    
     .btn-primary { background: #4a90e2; color: white; flex: 1.5; }
     .btn-primary:hover { background: #357abd; }
-    
     .btn-clear { background: #3a1c1c; color: #ff6b6b; border: 1px solid #5a2a2a; margin-top: 0.5rem; width: 100%; }
     .btn-clear:hover { background: #4a2424; }
 
-    #loading-state { text-align: center; font-size: 1.2rem; padding: 2rem; color: #888; }
+    /* Bottom App Navigation */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      background: #181818;
+      border-top: 1px solid var(--border-color);
+      padding: 0.8rem 0;
+      padding-bottom: calc(0.8rem + env(safe-area-inset-bottom)); /* For modern mobile screens */
+      z-index: 20;
+    }
+    .nav-item {
+      background: none; border: none; color: #777; font-size: 0.9rem; font-family: sans-serif; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; width: 33%;
+    }
+    .nav-item.active { color: var(--accent-color); }
+    .nav-icon { font-size: 1.4rem; }
+
+    #loading-state { text-align: center; font-size: 1.2rem; padding: 3rem 1rem; color: #888; font-family: sans-serif;}
   </style>
 </head>
 <body>
 
   <div class="app-wrapper">
     
-    <!-- Top Bar with Navigation & Stats -->
+    <!-- Top Bar -->
     <header class="top-bar">
-      <select class="level-filter" id="level-filter">
-        <option value="ALL">Loading levels...</option>
-      </select>
-      <div class="stat-badge">Reps: <span id="rep-count">0</span></div>
+      <h2 id="top-title">Dashboard</h2>
+      <div class="stat-badge" id="practice-stats" style="display: none;">Reps: <span id="rep-count">0</span></div>
     </header>
 
     <div class="background-kanji" id="bg-kanji"></div>
 
-    <main class="kanji-content">
-      <div id="loading-state">Fetching JLPT Data...</div>
+    <main class="view-container">
+      <div id="loading-state">Fetching JLPT Dictionary...</div>
 
-      <div id="kanji-ui" style="display: none;">
+      <!-- VIEW 1: DASHBOARD (Target Sets) -->
+      <div id="view-dashboard" class="view">
+        <h3 style="font-family: sans-serif; margin-top: 0;">Select a Target Set</h3>
+        <p style="color: #aaa; font-family: sans-serif; font-size: 0.9rem;">Choose a JLPT level to begin your writing practice.</p>
+        <div class="grid" id="dashboard-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW 2: PRACTICE MODE -->
+      <div id="view-practice" class="view">
         <h1 style="text-align: center; font-size: 3rem; margin: 0 0 1rem 0;" id="display-kanji"></h1>
         
         <div class="info-box">
@@ -233,38 +242,80 @@
 
         <div class="info-box">
           <p class="info-title">Onyomi (Click to listen 🔊)</p>
-          <p class="info-content clickable-reading" id="kanji-onyomi" title="Click to hear pronunciation"></p>
+          <p class="info-content clickable-reading" id="kanji-onyomi"></p>
           <p class="info-title" style="margin-top: 1rem;">Kunyomi (Click to listen 🔊)</p>
-          <p class="info-content clickable-reading" id="kanji-kunyomi" title="Click to hear pronunciation"></p>
+          <p class="info-content clickable-reading" id="kanji-kunyomi"></p>
         </div>
 
         <div class="info-box" style="background: transparent; box-shadow: none; padding: 0;">
           <p class="info-title" style="text-align: center;">Practice Area</p>
           <div class="canvas-container">
-            <!-- New tracing layer added here -->
             <div id="trace-kanji"></div>
             <canvas id="drawing-pad"></canvas>
           </div>
           <button class="btn btn-clear" id="btn-clear">Clear Canvas</button>
         </div>
       </div>
-      
-      <div style="height: 2rem;"></div> <!-- Scroll spacer -->
+
+      <!-- VIEW 3: PROGRESS PAGE -->
+      <div id="view-progress" class="view">
+        <div class="info-box" style="text-align: center; padding: 2rem 1rem;">
+          <p class="info-title">Overall Mastery</p>
+          <h2 id="prog-overall-text" style="font-size: 2rem; margin: 0.5rem 0; font-family: sans-serif;">0 / 0</h2>
+          <p style="color: #888; font-family: sans-serif; font-size: 0.9rem; margin-bottom: 1.5rem;">Kanji practiced at least once</p>
+          
+          <div class="progress-track" style="height: 12px;">
+            <div id="prog-overall-bar" class="progress-fill"></div>
+          </div>
+          
+          <div style="margin-top: 2rem; display: flex; justify-content: space-around; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <div>
+              <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent-color);" id="prog-total-reps">0</div>
+              <div class="info-title">Total Reps</div>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-family: sans-serif; margin-top: 2rem;">Level Breakdown</h3>
+        <div id="progress-breakdown">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
     </main>
 
-    <!-- Action Bar -->
-    <footer class="action-bar">
+    <!-- Practice Action Bar (Only visible in Practice View) -->
+    <footer class="action-bar" id="practice-action-bar">
       <button class="btn btn-secondary" id="btn-prev">← Prev</button>
       <button class="btn btn-primary" id="btn-rep">Register Rep</button>
       <button class="btn btn-secondary" id="btn-next">Next →</button>
     </footer>
+
+    <!-- Global App Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchView('dashboard')">
+        <span class="nav-icon">📚</span>
+        Sets
+      </button>
+      <button class="nav-item" onclick="switchView('practice')">
+        <span class="nav-icon">✍️</span>
+        Practice
+      </button>
+      <button class="nav-item" onclick="switchView('progress')">
+        <span class="nav-icon">📊</span>
+        Progress
+      </button>
+    </nav>
+
   </div>
 
   <script>
     // App State
     let fullKanjiData = [];
     let filteredKanjiData = [];
+    let jlptLevels = [];
     let currentIndex = 0;
+    let currentPracticeSet = null;
     
     // Load practice stats from Local Storage
     let practiceReps = JSON.parse(localStorage.getItem('jlptKanjiReps')) || {};
@@ -276,85 +327,170 @@
     const kanjiMeaning = document.getElementById('kanji-meaning');
     const kanjiOnyomi = document.getElementById('kanji-onyomi');
     const kanjiKunyomi = document.getElementById('kanji-kunyomi');
-    const loadingState = document.getElementById('loading-state');
-    const kanjiUI = document.getElementById('kanji-ui');
-    const levelFilter = document.getElementById('level-filter');
     const repCountDisplay = document.getElementById('rep-count');
 
-    // Text-to-Speech Function
-    function speakJapanese(text) {
-      if (!text || text === 'None' || text === '...') return;
-      
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'ja-JP'; 
-      utterance.rate = 0.8; // Slightly slower for clearer pronunciation
-      
-      window.speechSynthesis.speak(utterance);
-    }
-
-    // Attach TTS events
-    kanjiOnyomi.addEventListener('click', (e) => speakJapanese(e.target.textContent));
-    kanjiKunyomi.addEventListener('click', (e) => speakJapanese(e.target.textContent));
-
-    // 1. Fetch JSON from Github
+    // 1. Core Data Initialization
     async function initApp() {
       try {
         const response = await fetch('https://raw.githubusercontent.com/AnchorI/jlpt-kanji-dictionary/refs/heads/main/jlpt-kanji.json');
         fullKanjiData = await response.json();
         
-        // Populate Level Dropdown safely
+        // Extract Unique JLPT levels
         const levels = new Set();
         fullKanjiData.forEach(item => { if(item.jlpt) levels.add(item.jlpt); });
         
-        levelFilter.innerHTML = '<option value="ALL">All Levels</option>';
-        [...levels].sort().forEach(level => {
-          levelFilter.innerHTML += `<option value="${level}">${level}</option>`;
-        });
-
-        applyFilter('ALL');
+        // Sort levels descending (N5, N4, N3...)
+        jlptLevels = [...levels].sort().reverse(); 
+        
+        document.getElementById('loading-state').style.display = 'none';
+        
+        // Default start at Dashboard
+        switchView('dashboard');
       } catch (error) {
-        loadingState.textContent = 'Failed to load GitHub dictionary data. Check network.';
+        document.getElementById('loading-state').textContent = 'Failed to load GitHub data. Check network.';
       }
     }
 
-    // 2. Filter & Navigation Logic
-    function applyFilter(level) {
-      if (level === 'ALL') {
-        filteredKanjiData = fullKanjiData;
-      } else {
-        filteredKanjiData = fullKanjiData.filter(item => item.jlpt === level);
+    // 2. View Routing System
+    function switchView(viewName) {
+      // Hide all views & inactive tabs
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      
+      // Activate Target View & Tab
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      const tabs = document.querySelectorAll('.nav-item');
+      if(viewName === 'dashboard') tabs[0].classList.add('active');
+      if(viewName === 'practice') tabs[1].classList.add('active');
+      if(viewName === 'progress') tabs[2].classList.add('active');
+
+      // Top Bar & Action Bar Logic
+      const topTitle = document.getElementById('top-title');
+      const stats = document.getElementById('practice-stats');
+      const actionBar = document.getElementById('practice-action-bar');
+
+      if (viewName === 'dashboard') {
+        topTitle.textContent = 'Dashboard';
+        stats.style.display = 'none';
+        actionBar.classList.remove('active');
+        bgKanji.style.display = 'none';
+        renderDashboard();
+      } 
+      else if (viewName === 'practice') {
+        // Fallback if accessed without choosing a set
+        if (!currentPracticeSet && jlptLevels.length > 0) {
+          startPractice(jlptLevels[0]); 
+          return; // startPractice handles the rest
+        }
+        topTitle.textContent = currentPracticeSet ? `Practicing: ${currentPracticeSet}` : 'Practice';
+        stats.style.display = 'block';
+        actionBar.classList.add('active');
+        bgKanji.style.display = 'block';
+        
+        // crucial: resize canvas when UI becomes visible
+        resizeCanvas();
+        clearCanvas();
+      } 
+      else if (viewName === 'progress') {
+        topTitle.textContent = 'Analytics';
+        stats.style.display = 'none';
+        actionBar.classList.remove('active');
+        bgKanji.style.display = 'none';
+        renderProgress();
       }
+    }
+
+    // 3. Render Dashboard (Set Selection)
+    function renderDashboard() {
+      const grid = document.getElementById('dashboard-grid');
+      grid.innerHTML = '';
+
+      jlptLevels.forEach(level => {
+        const levelData = fullKanjiData.filter(k => k.jlpt === level);
+        const total = levelData.length;
+        const practiced = levelData.filter(k => (practiceReps[k.kanji] || 0) > 0).length;
+        const percent = total === 0 ? 0 : Math.round((practiced / total) * 100);
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => startPractice(level);
+        card.innerHTML = `
+          <h3>JLPT ${level}</h3>
+          <p>${practiced} / ${total} Learned</p>
+          <div class="progress-track">
+            <div class="progress-fill ${percent === 100 ? 'complete' : ''}" style="width: ${percent}%"></div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 4. Render Progress Page
+    function renderProgress() {
+      let totalKanji = fullKanjiData.length;
+      let overallPracticed = 0;
+      let totalReps = 0;
+
+      fullKanjiData.forEach(k => {
+        const reps = practiceReps[k.kanji] || 0;
+        if(reps > 0) overallPracticed++;
+        totalReps += reps;
+      });
+
+      const overallPercent = totalKanji === 0 ? 0 : Math.round((overallPracticed / totalKanji) * 100);
+      
+      document.getElementById('prog-overall-text').textContent = `${overallPracticed} / ${totalKanji}`;
+      document.getElementById('prog-overall-bar').style.width = `${overallPercent}%`;
+      document.getElementById('prog-overall-bar').className = `progress-fill ${overallPercent === 100 ? 'complete' : ''}`;
+      document.getElementById('prog-total-reps').textContent = totalReps;
+
+      const breakdownContainer = document.getElementById('progress-breakdown');
+      breakdownContainer.innerHTML = '';
+
+      jlptLevels.forEach(level => {
+        const levelData = fullKanjiData.filter(k => k.jlpt === level);
+        const total = levelData.length;
+        const practiced = levelData.filter(k => (practiceReps[k.kanji] || 0) > 0).length;
+        const percent = total === 0 ? 0 : Math.round((practiced / total) * 100);
+
+        breakdownContainer.innerHTML += `
+          <div class="info-box" style="padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; font-family: sans-serif; align-items: center;">
+              <strong style="font-size: 1.1rem;">JLPT ${level}</strong>
+              <span style="color: #aaa; font-size: 0.9rem;">${percent}% (${practiced}/${total})</span>
+            </div>
+            <div class="progress-track" style="margin-top: 8px;">
+              <div class="progress-fill ${percent === 100 ? 'complete' : ''}" style="width: ${percent}%"></div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // 5. Practice Logic & API Fetching
+    function startPractice(level) {
+      currentPracticeSet = level;
+      filteredKanjiData = fullKanjiData.filter(item => item.jlpt === level);
       currentIndex = 0;
+      
+      switchView('practice');
       loadKanjiUI();
     }
 
-    levelFilter.addEventListener('change', (e) => applyFilter(e.target.value));
-
-    // 3. Load UI for current Kanji
     async function loadKanjiUI() {
       if (filteredKanjiData.length === 0) return;
       
       const currentItem = filteredKanjiData[currentIndex];
       const char = currentItem.kanji;
       
-      // Update UI texts immediately based on GitHub JSON
       bgKanji.textContent = char;
       displayKanji.textContent = char;
-      traceKanji.textContent = char; // Set the tracing character
+      traceKanji.textContent = char; 
       kanjiMeaning.textContent = currentItem.description || 'Loading...';
       kanjiOnyomi.textContent = '...';
       kanjiKunyomi.textContent = '...';
       
       updateRepDisplay(char);
-      
-      loadingState.style.display = 'none';
-      kanjiUI.style.display = 'block';
-      
-      // IMPORTANT: Resize canvas AFTER kanjiUI is visible, so it calculates width > 0
-      resizeCanvas();
       clearCanvas();
 
       // Fetch Readings in the background from KanjiAPI
@@ -367,17 +503,17 @@
           kanjiKunyomi.textContent = apiData.kun_readings.length ? apiData.kun_readings.join(', ') : 'None';
         }
       } catch (e) {
-        // Silently fail to fallback
+        // Fallback silently to GH data
       }
     }
 
-    // 4. Practice Registration Logic
+    // 6. Registration & Navigation Controls
     function updateRepDisplay(char) {
-      const reps = practiceReps[char] || 0;
-      repCountDisplay.textContent = reps;
+      repCountDisplay.textContent = practiceReps[char] || 0;
     }
 
     document.getElementById('btn-rep').addEventListener('click', function() {
+      if(filteredKanjiData.length === 0) return;
       const char = filteredKanjiData[currentIndex].kanji;
       practiceReps[char] = (practiceReps[char] || 0) + 1;
       
@@ -386,14 +522,13 @@
       
       const originalText = this.textContent;
       this.textContent = "Saved! ✓";
-      this.style.background = "#2e7d32"; // Darker green for dark mode
+      this.style.background = "#2e7d32";
       setTimeout(() => {
         this.textContent = originalText;
         this.style.background = "";
       }, 800);
     });
 
-    // 5. Button Navigation controls
     document.getElementById('btn-prev').addEventListener('click', () => {
       currentIndex = (currentIndex - 1 + filteredKanjiData.length) % filteredKanjiData.length;
       loadKanjiUI();
@@ -404,29 +539,36 @@
       loadKanjiUI();
     });
 
-    // 6. Canvas Drawing Logic (Adjusted stroke for dark mode)
+    // 7. Text-to-Speech Function
+    function speakJapanese(text) {
+      if (!text || text === 'None' || text === '...') return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP'; 
+      utterance.rate = 0.8;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    kanjiOnyomi.addEventListener('click', (e) => speakJapanese(e.target.textContent));
+    kanjiKunyomi.addEventListener('click', (e) => speakJapanese(e.target.textContent));
+
+    // 8. Canvas Drawing Logic
     const canvas = document.getElementById('drawing-pad');
     const ctx = canvas.getContext('2d');
     let isDrawing = false;
 
     function resizeCanvas() {
       const rect = canvas.parentElement.getBoundingClientRect();
-      // Only resize if the container actually has dimensions
       if (rect.width > 0 && rect.height > 0) {
         canvas.width = rect.width;
         canvas.height = rect.height;
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        // Use the light stroke color we defined in CSS variables
         ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-stroke').trim();
       }
     }
-    window.addEventListener('resize', () => {
-        resizeCanvas();
-        // Clear canvas on resize so lines don't get stretched/distorted
-        clearCanvas(); 
-    });
+    window.addEventListener('resize', () => { resizeCanvas(); clearCanvas(); });
 
     function getPosition(e) {
       const rect = canvas.getBoundingClientRect();
