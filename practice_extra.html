@@ -826,10 +826,10 @@
         let isDrawing = false;
         let lastPos = { x: 0, y: 0 };
         let lastTime = 0;
-        let currentWidth = 4;
+        let currentWidth = 2;
 
-        const MAX_WIDTH = 10;
-        const MIN_WIDTH = 2;
+        const MAX_WIDTH = 8;
+        const MIN_WIDTH = 1;
 
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
@@ -871,7 +871,7 @@
             const speed = dist / timeDelta;
 
             // Map speed to thickness: faster equals thinner lines (calligraphy effect)
-            const targetWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, MAX_WIDTH - (speed * 8)));
+            const targetWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, MAX_WIDTH - (speed * 4)));
 
             // Smooth the transition for natural look
             currentWidth += (targetWidth - currentWidth) * 0.25;
