@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JLPT Kanji & Kana Practice</title>
+    <!-- Add SignaturePad via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&display=swap');
 
@@ -784,22 +786,11 @@
         });
 
         document.getElementById('btn-next').addEventListener('click', () => {
-            if (filteredKanjiData.length > 0 && canvas.width > 0 && canvas.height > 0) {
-                const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-                let hasInk = false;
-
-                for (let i = 3; i < pixelData.length; i += 4) {
-                    if (pixelData[i] > 0) {
-                        hasInk = true;
-                        break;
-                    }
-                }
-
-                if (hasInk) {
-                    const char = filteredKanjiData[currentIndex].kanji;
-                    practiceReps[char] = (practiceReps[char] || 0) + 1;
-                    localStorage.setItem('jlptKanjiReps', JSON.stringify(practiceReps));
-                }
+            // Check SignaturePad instead of manual pixel scraping
+            if (filteredKanjiData.length > 0 && signaturePad && !signaturePad.isEmpty()) {
+                const char = filteredKanjiData[currentIndex].kanji;
+                practiceReps[char] = (practiceReps[char] || 0) + 1;
+                localStorage.setItem('jlptKanjiReps', JSON.stringify(practiceReps));
             }
 
             currentIndex = (currentIndex + 1) % filteredKanjiData.length;
@@ -820,83 +811,44 @@
         kanjiOnyomi.addEventListener('click', (e) => speakJapanese(e.target.textContent));
         kanjiKunyomi.addEventListener('click', (e) => speakJapanese(e.target.textContent));
 
-        // 8. Canvas Drawing Logic (Variable Brush Thickness)
+        // 8. Signature_Pad Canvas Drawing Logic (Calligraphy Engine)
         const canvas = document.getElementById('drawing-pad');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let lastPos = { x: 0, y: 0 };
-        let lastTime = 0;
-        let currentWidth = 8;
+        let signaturePad;
 
-        const MAX_WIDTH = 22;
-        const MIN_WIDTH = 4;
+        function initSignaturePad() {
+            // Configure for a thin, brush-like variable stroke
+            signaturePad = new SignaturePad(canvas, {
+                minWidth: 0.5,
+                maxWidth: 4.5,
+                penColor: "rgb(224, 224, 224)", // Matches --canvas-stroke
+                velocityFilterWeight: 0.7 
+            });
+        }
 
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-stroke').trim();
+                // Device pixel ratio for crisp high-DPI scaling
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = rect.width * ratio;
+                canvas.height = rect.height * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                
+                if (signaturePad) {
+                    signaturePad.clear(); // Clear prevents artifacting on resize
+                } else {
+                    initSignaturePad();
+                }
             }
         }
-        window.addEventListener('resize', () => { resizeCanvas(); clearCanvas(); });
+        
+        window.addEventListener('resize', resizeCanvas);
 
-        function getPosition(e) {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX || (e.touches && e.touches[0].clientX);
-            const y = e.clientY || (e.touches && e.touches[0].clientY);
-            return { x: x - rect.left, y: y - rect.top };
+        function clearCanvas() { 
+            if (signaturePad) {
+                signaturePad.clear(); 
+            }
         }
-
-        function startDrawing(e) {
-            e.preventDefault();
-            isDrawing = true;
-            lastPos = getPosition(e);
-            lastTime = Date.now();
-            currentWidth = 2;
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault();
-
-            const pos = getPosition(e);
-            const time = Date.now();
-
-            // Calculate distance and speed to adjust brush thickness
-            const dist = Math.hypot(pos.x - lastPos.x, pos.y - lastPos.y);
-            const timeDelta = (time - lastTime) || 1;
-            const speed = dist / timeDelta;
-
-            // Map speed to thickness: faster equals thinner lines (calligraphy effect)
-            const targetWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, MAX_WIDTH - (speed * 8)));
-
-            // Smooth the transition for natural look
-            currentWidth += (targetWidth - currentWidth) * 0.25;
-
-            ctx.lineWidth = currentWidth;
-            ctx.beginPath();
-            ctx.moveTo(lastPos.x, lastPos.y);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-
-            lastPos = pos;
-            lastTime = time;
-        }
-
-        function stopDrawing() { isDrawing = false; ctx.closePath(); }
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', startDrawing, { passive: false });
-        canvas.addEventListener('touchmove', draw, { passive: false });
-        canvas.addEventListener('touchend', stopDrawing);
-        canvas.addEventListener('touchcancel', stopDrawing);
 
         document.getElementById('btn-clear').addEventListener('click', clearCanvas);
 
